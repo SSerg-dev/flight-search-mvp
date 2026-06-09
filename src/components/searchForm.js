@@ -12,53 +12,83 @@ export const searchFormDefaults = {
   maxLayover: 12,
 };
 
-function createTextField({ id, label, value }) {
+const inputClass =
+  'h-11 rounded border border-slate-300 bg-white px-3 text-base text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200';
+
+function createFieldError(fieldName, errors) {
+  if (!errors?.[fieldName]) {
+    return '';
+  }
+
+  return `<p class="text-sm text-red-600" data-error-for="${fieldName}">${escapeHtml(errors[fieldName])}</p>`;
+}
+
+function createTextField({ id, label, value, errors }) {
   return `
     <label class="grid gap-2 text-sm font-medium text-slate-700" for="${id}">
-      ${label}
+      <span class="block min-h-5">${label}</span>
       <input
-        class="h-11 rounded border border-slate-300 bg-white px-3 text-base text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+        class="${inputClass}"
         id="${id}"
         name="${id}"
         type="text"
-        value="${value}"
+        value="${escapeHtml(value)}"
       />
+      ${createFieldError(id, errors)}
     </label>
   `;
 }
 
-function createNumberField({ id, label, value, min }) {
+function createNumberField({ id, label, value, min, errors }) {
   return `
     <label class="grid gap-2 text-sm font-medium text-slate-700" for="${id}">
-      ${label}
+      <span class="block min-h-5">${label}</span>
       <input
-        class="h-11 rounded border border-slate-300 bg-white px-3 text-base text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+        class="${inputClass}"
         id="${id}"
         name="${id}"
         type="number"
         min="${min}"
-        value="${value}"
+        value="${escapeHtml(value)}"
       />
+      ${createFieldError(id, errors)}
     </label>
   `;
 }
 
-function createDateField({ id, label, value }) {
+function createDateField({ id, label, value, errors }) {
   return `
     <label class="grid gap-2 text-sm font-medium text-slate-700" for="${id}">
-      ${label}
+      <span class="block min-h-5">${label}</span>
       <input
-        class="h-11 rounded border border-slate-300 bg-white px-3 text-base text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+        class="${inputClass}"
         id="${id}"
         name="${id}"
         type="date"
-        value="${value}"
+        value="${escapeHtml(value)}"
       />
+      ${createFieldError(id, errors)}
     </label>
   `;
 }
 
-export function createSearchForm() {
+export function createSearchQueryFromFormData(formData) {
+  return {
+    from: String(formData.get('from') ?? '').trim(),
+    via: String(formData.get('via') ?? '').trim(),
+    to: String(formData.get('to') ?? '').trim(),
+    departureDate: String(formData.get('departureDate') ?? ''),
+    dateRange: {
+      start: String(formData.get('dateRangeStart') ?? ''),
+      end: String(formData.get('dateRangeEnd') ?? ''),
+    },
+    adults: toOptionalNumber(formData.get('adults')),
+    minLayover: toOptionalNumber(formData.get('minLayover')),
+    maxLayover: toOptionalNumber(formData.get('maxLayover')),
+  };
+}
+
+export function createSearchForm({ values = searchFormDefaults, errors = {} } = {}) {
   return `
     <main class="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
       <section class="mx-auto max-w-5xl">
@@ -72,34 +102,37 @@ export function createSearchForm() {
         </div>
 
         <form class="grid gap-6 rounded border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+          ${createFieldError('route', errors)}
+
           <div class="grid gap-4 md:grid-cols-3">
-            ${createTextField({ id: 'from', label: 'From', value: searchFormDefaults.from })}
-            ${createTextField({ id: 'via', label: 'Via', value: searchFormDefaults.via })}
-            ${createTextField({ id: 'to', label: 'To', value: searchFormDefaults.to })}
+            ${createTextField({ id: 'from', label: 'From', value: values.from, errors })}
+            ${createTextField({ id: 'via', label: 'Via', value: values.via, errors })}
+            ${createTextField({ id: 'to', label: 'To', value: values.to, errors })}
           </div>
 
-          <div class="grid gap-4 md:grid-cols-2">
-            ${createDateField({
-              id: 'departureDate',
-              label: 'Departure Date',
-              value: searchFormDefaults.departureDate,
-            })}
-
-            <fieldset class="grid gap-2">
-              <legend class="mb-2 text-sm font-medium text-slate-700">Date Range</legend>
-              <div class="grid gap-3 sm:grid-cols-2">
-                ${createDateField({
-                  id: 'dateRangeStart',
-                  label: 'Start Date',
-                  value: searchFormDefaults.dateRange.start,
-                })}
-                ${createDateField({
-                  id: 'dateRangeEnd',
-                  label: 'End Date',
-                  value: searchFormDefaults.dateRange.end,
-                })}
-              </div>
-            </fieldset>
+          <div class="grid gap-3">
+            <p class="text-sm font-medium text-slate-700">Date Range</p>
+            <div class="grid items-start gap-4 md:grid-cols-3">
+              ${createDateField({
+                id: 'departureDate',
+                label: 'Departure Date',
+                value: values.departureDate,
+                errors,
+              })}
+              ${createDateField({
+                id: 'dateRangeStart',
+                label: 'Start Date',
+                value: values.dateRange.start,
+                errors,
+              })}
+              ${createDateField({
+                id: 'dateRangeEnd',
+                label: 'End Date',
+                value: values.dateRange.end,
+                errors,
+              })}
+            </div>
+            ${createFieldError('dateRange', errors)}
           </div>
 
           <div class="grid gap-4 md:grid-cols-3">
@@ -107,21 +140,25 @@ export function createSearchForm() {
               id: 'adults',
               label: 'Adults',
               min: 1,
-              value: searchFormDefaults.adults,
+              value: values.adults,
+              errors,
             })}
             ${createNumberField({
               id: 'minLayover',
               label: 'Min Layover Hours',
               min: 0,
-              value: searchFormDefaults.minLayover,
+              value: values.minLayover,
+              errors,
             })}
             ${createNumberField({
               id: 'maxLayover',
               label: 'Max Layover Hours',
               min: 0,
-              value: searchFormDefaults.maxLayover,
+              value: values.maxLayover,
+              errors,
             })}
           </div>
+          ${createFieldError('layover', errors)}
 
           <div class="flex justify-start">
             <button
@@ -135,4 +172,21 @@ export function createSearchForm() {
       </section>
     </main>
   `;
+}
+
+function toOptionalNumber(value) {
+  if (String(value ?? '').trim() === '') {
+    return '';
+  }
+
+  return Number(value);
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;');
 }

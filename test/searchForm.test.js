@@ -44,3 +44,50 @@ test('search form renders all approved fields and the submit button', () => {
   assert.match(markup, /name="maxLayover"/);
   assert.match(markup, /type="submit"/);
 });
+
+test('search form renders validation errors near related fields', () => {
+  const markup = searchForm.createSearchForm({
+    errors: {
+      from: 'From is required.',
+      route: 'From, Via, and To must be different.',
+      dateRange: 'Date Range start date must be before or equal to end date.',
+      layover: 'Min Layover Hours cannot be greater than Max Layover Hours.',
+    },
+  });
+
+  assert.match(markup, /data-error-for="from"[\s\S]*From is required\./);
+  assert.match(markup, /data-error-for="route"[\s\S]*From, Via, and To must be different\./);
+  assert.match(markup, /data-error-for="dateRange"[\s\S]*Date Range start date must be before or equal to end date\./);
+  assert.match(markup, /data-error-for="layover"[\s\S]*Min Layover Hours cannot be greater than Max Layover Hours\./);
+});
+
+test('creates the Wave 3 search query shape from submitted form data', () => {
+  const formData = new FormData();
+
+  formData.set('from', 'Boston');
+  formData.set('via', 'Istanbul');
+  formData.set('to', 'Saint Petersburg');
+  formData.set('departureDate', '2026-08-01');
+  formData.set('dateRangeStart', '2026-08-01');
+  formData.set('dateRangeEnd', '2026-08-10');
+  formData.set('adults', '2');
+  formData.set('minLayover', '3');
+  formData.set('maxLayover', '12');
+
+  assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), searchForm.searchFormDefaults);
+});
+
+test('escapes submitted values and validation messages before rendering', () => {
+  const markup = searchForm.createSearchForm({
+    values: {
+      ...searchForm.searchFormDefaults,
+      from: '"<Boston>"',
+    },
+    errors: {
+      from: 'Use "Boston" <only>.',
+    },
+  });
+
+  assert.match(markup, /value="&quot;&lt;Boston&gt;&quot;"/);
+  assert.match(markup, /Use &quot;Boston&quot; &lt;only&gt;\./);
+});
