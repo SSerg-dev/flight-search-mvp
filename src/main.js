@@ -12,6 +12,7 @@ const appState = {
   errors: {},
   results: undefined,
   isLoading: false,
+  serviceError: '',
 };
 
 renderApp();
@@ -23,7 +24,10 @@ function renderApp() {
       errors: appState.errors,
       isLoading: appState.isLoading,
     }) +
-    createSearchStatus({ isLoading: appState.isLoading }) +
+    createSearchStatus({
+      isLoading: appState.isLoading,
+      serviceError: appState.serviceError,
+    }) +
     createResultsMarkup(appState.results);
   app.querySelector('form').addEventListener('submit', handleSearchSubmit);
 }
@@ -39,6 +43,7 @@ async function handleSearchSubmit(event) {
     appState.errors = result.errors;
     appState.results = undefined;
     appState.isLoading = false;
+    appState.serviceError = '';
     renderApp();
 
     return;
@@ -48,11 +53,18 @@ async function handleSearchSubmit(event) {
   appState.errors = {};
   appState.results = undefined;
   appState.isLoading = true;
+  appState.serviceError = '';
   renderApp();
 
-  appState.results = await searchFlightOffers(query);
-  appState.isLoading = false;
-  renderApp();
+  try {
+    appState.results = await searchFlightOffers(query);
+  } catch {
+    appState.results = undefined;
+    appState.serviceError = 'We could not load flight results. Please try again.';
+  } finally {
+    appState.isLoading = false;
+    renderApp();
+  }
 }
 
 function createResultsMarkup(results) {

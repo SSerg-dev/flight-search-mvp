@@ -37,3 +37,12 @@ test('searchFlightOffers simulates API timing without making network calls', asy
 
   assert.ok(Date.now() - startedAt >= 5);
 });
+
+test('searchFlightOffers can simulate a service failure', async () => {
+  await assert.rejects(
+    searchFlightOffers(baseQuery, { shouldFail: true, delayMs: 0 }),
+    {
+      message: 'Mock flight service failed.',
+    },
+  );
+});
