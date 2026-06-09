@@ -1,6 +1,6 @@
 export function createResultCard(flight) {
   return `
-    <article class="grid gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[1fr_auto] sm:items-start sm:p-5">
+    <article class="grid gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm transition hover:border-sky-300 hover:shadow-md sm:grid-cols-[1fr_auto] sm:items-start sm:p-5">
       <div class="grid gap-3">
         <div>
           <h2 class="text-lg font-semibold text-slate-950">${escapeHtml(flight.airline)}</h2>
@@ -9,7 +9,7 @@ export function createResultCard(flight) {
 
         <div class="grid gap-2 text-sm text-slate-700">
           <p class="font-medium text-slate-900">
-            ${escapeHtml(flight.from)} -> ${escapeHtml(flight.via)} -> ${escapeHtml(flight.to)}
+            ${escapeHtml(flight.from)} to ${escapeHtml(flight.via)} to ${escapeHtml(flight.to)}
           </p>
           <p>
             Depart ${escapeHtml(flight.departureDate)} at ${escapeHtml(flight.departureTime)}

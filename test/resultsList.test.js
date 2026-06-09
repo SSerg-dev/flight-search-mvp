@@ -27,6 +27,17 @@ test('results list renders matching result cards', () => {
   assert.match(markup, new RegExp(mockFlights[1].airline));
 });
 
+test('result cards and results list include responsive and interactive polish', () => {
+  const cardMarkup = createResultCard(mockFlights[0]);
+  const listMarkup = createResultsList(mockFlights.slice(0, 1));
+
+  assert.match(cardMarkup, /hover:border-sky-300/);
+  assert.match(cardMarkup, /hover:shadow-md/);
+  assert.match(cardMarkup, /transition/);
+  assert.match(cardMarkup, /sm:grid-cols-\[1fr_auto\]/);
+  assert.match(listMarkup, /aria-live="polite"/);
+});
+
 test('results list renders an empty state when no flights match', () => {
   const markup = createResultsList([]);
 

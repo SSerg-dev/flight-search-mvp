@@ -13,14 +13,22 @@ export const searchFormDefaults = {
 };
 
 const inputClass =
-  'h-11 rounded border border-slate-300 bg-white px-3 text-base text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200';
+  'h-11 rounded border border-slate-300 bg-white px-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-200';
 
 function createFieldError(fieldName, errors) {
   if (!errors?.[fieldName]) {
     return '';
   }
 
-  return `<p class="text-sm text-red-600" data-error-for="${fieldName}">${escapeHtml(errors[fieldName])}</p>`;
+  return `<p class="text-sm font-medium text-red-600" data-error-for="${fieldName}" id="${fieldName}-error" role="alert">${escapeHtml(errors[fieldName])}</p>`;
+}
+
+function createErrorAttributes(fieldName, errors) {
+  if (!errors?.[fieldName]) {
+    return 'aria-invalid="false"';
+  }
+
+  return `aria-invalid="true" aria-describedby="${fieldName}-error"`;
 }
 
 function createTextField({ id, label, value, errors }) {
@@ -33,6 +41,7 @@ function createTextField({ id, label, value, errors }) {
         name="${id}"
         type="text"
         value="${escapeHtml(value)}"
+        ${createErrorAttributes(id, errors)}
       />
       ${createFieldError(id, errors)}
     </label>
@@ -50,6 +59,7 @@ function createNumberField({ id, label, value, min, errors }) {
         type="number"
         min="${min}"
         value="${escapeHtml(value)}"
+        ${createErrorAttributes(id, errors)}
       />
       ${createFieldError(id, errors)}
     </label>
@@ -66,6 +76,7 @@ function createDateField({ id, label, value, errors }) {
         name="${id}"
         type="date"
         value="${escapeHtml(value)}"
+        ${createErrorAttributes(id, errors)}
       />
       ${createFieldError(id, errors)}
     </label>
@@ -90,9 +101,9 @@ export function createSearchQueryFromFormData(formData) {
 
 export function createSearchForm({ values = searchFormDefaults, errors = {} } = {}) {
   return `
-    <main class="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+    <main class="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <section class="mx-auto max-w-5xl">
-        <div class="mb-6">
+        <div class="mb-5 sm:mb-6">
           <h1 class="text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">
             Flight Search
           </h1>
@@ -101,7 +112,7 @@ export function createSearchForm({ values = searchFormDefaults, errors = {} } = 
           </p>
         </div>
 
-        <form class="grid gap-6 rounded border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+        <form class="grid gap-5 rounded border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:gap-6" novalidate>
           ${createFieldError('route', errors)}
 
           <div class="grid gap-4 md:grid-cols-3">
@@ -160,9 +171,9 @@ export function createSearchForm({ values = searchFormDefaults, errors = {} } = 
           </div>
           ${createFieldError('layover', errors)}
 
-          <div class="flex justify-start">
+          <div class="flex justify-stretch sm:justify-start">
             <button
-              class="h-11 rounded bg-sky-600 px-5 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300"
+              class="h-11 w-full rounded bg-sky-600 px-5 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 sm:w-auto"
               type="submit"
             >
               Search Flights

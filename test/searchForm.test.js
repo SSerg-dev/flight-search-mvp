@@ -91,3 +91,27 @@ test('escapes submitted values and validation messages before rendering', () => 
   assert.match(markup, /value="&quot;&lt;Boston&gt;&quot;"/);
   assert.match(markup, /Use &quot;Boston&quot; &lt;only&gt;\./);
 });
+
+test('search form connects validation errors to inputs for assistive technology', () => {
+  const markup = searchForm.createSearchForm({
+    errors: {
+      from: 'From is required.',
+      adults: 'Adults must be at least 1.',
+    },
+  });
+
+  assert.match(markup, /id="from-error"/);
+  assert.match(markup, /aria-describedby="from-error"/);
+  assert.match(markup, /aria-invalid="true"/);
+  assert.match(markup, /id="adults-error"/);
+  assert.match(markup, /aria-describedby="adults-error"/);
+  assert.match(markup, /role="alert"/);
+});
+
+test('search form includes responsive spacing and full-width mobile submit action', () => {
+  const markup = searchForm.createSearchForm();
+
+  assert.match(markup, /py-6[\s\S]*sm:py-8[\s\S]*lg:py-10/);
+  assert.match(markup, /grid[\s\S]*gap-5[\s\S]*lg:gap-6/);
+  assert.match(markup, /w-full[\s\S]*sm:w-auto/);
+});
