@@ -11,11 +11,11 @@ test('result card renders flight route, airline, price, dates, layover, and dura
   assert.match(markup, /Boston/);
   assert.match(markup, /Istanbul/);
   assert.match(markup, /Saint Petersburg/);
-  assert.match(markup, new RegExp(mockFlights[0].airline));
-  assert.match(markup, new RegExp(`\\$${mockFlights[0].price}`));
-  assert.match(markup, new RegExp(mockFlights[0].departureDate));
-  assert.match(markup, new RegExp(`${mockFlights[0].layoverHours}h layover`));
-  assert.match(markup, new RegExp(mockFlights[0].totalDuration));
+  assert.match(markup, new RegExp(mockFlights[0].airline.name));
+  assert.match(markup, new RegExp(`\\$${mockFlights[0].price.amount}`));
+  assert.match(markup, new RegExp(mockFlights[0].route.departureDate));
+  assert.match(markup, new RegExp(mockFlights[0].duration.layoverDisplay));
+  assert.match(markup, new RegExp(mockFlights[0].duration.display));
   assert.match(markup, /2 adults/);
 });
 
@@ -23,8 +23,8 @@ test('results list renders matching result cards', () => {
   const markup = createResultsList(mockFlights.slice(0, 2));
 
   assert.match(markup, /2 matching flights/);
-  assert.match(markup, new RegExp(mockFlights[0].airline));
-  assert.match(markup, new RegExp(mockFlights[1].airline));
+  assert.match(markup, new RegExp(mockFlights[0].airline.name));
+  assert.match(markup, new RegExp(mockFlights[1].airline.name));
 });
 
 test('result cards and results list include responsive and interactive polish', () => {
