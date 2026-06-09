@@ -1,15 +1,30 @@
 import './styles/input.css';
-import { createSearchForm, createSearchQueryFromFormData } from './components/searchForm.js';
+import { createSearchForm, createSearchQueryFromFormData, searchFormDefaults } from './components/searchForm.js';
 import { createResultsList } from './components/resultsList.js';
+import { createSearchStatus } from './components/searchStatus.js';
 import { searchFlightOffers } from './services/flightService.js';
 import { validateSearchQuery } from './utils/validation.js';
 
 const app = document.querySelector('#app');
 
-renderSearchForm();
+const appState = {
+  values: searchFormDefaults,
+  errors: {},
+  results: undefined,
+  isLoading: false,
+};
 
-function renderSearchForm(options) {
-  app.innerHTML = createSearchForm(options) + createResultsMarkup(options?.results);
+renderApp();
+
+function renderApp() {
+  app.innerHTML =
+    createSearchForm({
+      values: appState.values,
+      errors: appState.errors,
+      isLoading: appState.isLoading,
+    }) +
+    createSearchStatus({ isLoading: appState.isLoading }) +
+    createResultsMarkup(appState.results);
   app.querySelector('form').addEventListener('submit', handleSearchSubmit);
 }
 
@@ -20,19 +35,24 @@ async function handleSearchSubmit(event) {
   const result = validateSearchQuery(query);
 
   if (!result.isValid) {
-    renderSearchForm({
-      values: query,
-      errors: result.errors,
-    });
+    appState.values = query;
+    appState.errors = result.errors;
+    appState.results = undefined;
+    appState.isLoading = false;
+    renderApp();
 
     return;
   }
 
-  renderSearchForm({
-    values: query,
-    errors: {},
-    results: await searchFlightOffers(query),
-  });
+  appState.values = query;
+  appState.errors = {};
+  appState.results = undefined;
+  appState.isLoading = true;
+  renderApp();
+
+  appState.results = await searchFlightOffers(query);
+  appState.isLoading = false;
+  renderApp();
 }
 
 function createResultsMarkup(results) {

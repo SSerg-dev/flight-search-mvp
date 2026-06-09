@@ -99,7 +99,10 @@ export function createSearchQueryFromFormData(formData) {
   };
 }
 
-export function createSearchForm({ values = searchFormDefaults, errors = {} } = {}) {
+export function createSearchForm({ values = searchFormDefaults, errors = {}, isLoading = false } = {}) {
+  const buttonText = isLoading ? 'Searching...' : 'Search Flights';
+  const loadingAttributes = isLoading ? 'disabled aria-busy="true"' : 'aria-busy="false"';
+
   return `
     <main class="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <section class="mx-auto max-w-5xl">
@@ -175,8 +178,9 @@ export function createSearchForm({ values = searchFormDefaults, errors = {} } = 
             <button
               class="h-11 w-full rounded bg-sky-600 px-5 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 sm:w-auto"
               type="submit"
+              ${loadingAttributes}
             >
-              Search Flights
+              ${buttonText}
             </button>
           </div>
         </form>

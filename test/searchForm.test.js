@@ -115,3 +115,11 @@ test('search form includes responsive spacing and full-width mobile submit actio
   assert.match(markup, /grid[\s\S]*gap-5[\s\S]*lg:gap-6/);
   assert.match(markup, /w-full[\s\S]*sm:w-auto/);
 });
+
+test('search form disables submit button while loading', () => {
+  const markup = searchForm.createSearchForm({ isLoading: true });
+
+  assert.match(markup, /disabled/);
+  assert.match(markup, /aria-busy="true"/);
+  assert.match(markup, /Searching/);
+});
