@@ -243,10 +243,165 @@ Required Action: can start implementation / revise the plan
 
 ---
 
-# 7. Final Controller Status
+# 7. Controller Output v2
+
+## Review Status
+
+PASSED
+
+## Checked Version
+
+v1
+
+## Review Summary
+
+Producer Output v2 is safe to implement.
+
+The plan follows the MVP v2 goal: prepare the frontend for future real-world flight data while continuing to use mock data.
+
+The waves are ordered correctly:
+
+1. Data Model Upgrade
+2. Service Layer
+3. Loading State
+4. Error State
+5. Sorting
+6. UI / UX Improvements
+7. RED Test v2
+
+The plan does not include a real flight API, backend, authentication, payment, advanced filters, multi-city routing, or multiple stopovers.
+
+---
+
+## Problems
+
+No blocking problems found.
+
+---
+
+## Final Verification
+
+### Criterion 1 — Tasks Small Enough
+
+Status: PASSED
+
+Reason:
+
+Each wave is split into small or medium tasks.
+
+No task is marked `Too Big`.
+
+Tasks are specific enough to implement and review independently.
+
+---
+
+### Criterion 2 — API-Ready Architecture
+
+Status: PASSED
+
+Reason:
+
+The plan prepares API-ready architecture by:
+
+- upgrading mock data into an API-like shape;
+- adding a service layer;
+- making search async;
+- simulating API delay;
+- adding loading state;
+- adding service error state;
+- separating validation errors from service errors.
+
+This is aligned with MVP v2 and does not jump into MVP v3.
+
+---
+
+### Criterion 3 — MVP Scope Respected
+
+Status: PASSED
+
+Reason:
+
+The plan stays inside MVP v2 scope:
+
+- mock data only;
+- frontend only;
+- service abstraction only;
+- loading and error states;
+- sorting;
+- UI / UX improvements.
+
+It does not introduce product features outside the approved v2 workflow.
+
+---
+
+### Criterion 4 — No Real API
+
+Status: PASSED
+
+Reason:
+
+The plan explicitly keeps data local and mock-backed.
+
+The service layer simulates future API behavior but does not connect to any external API.
+
+---
+
+### Criterion 5 — No Backend
+
+Status: PASSED
+
+Reason:
+
+The plan uses only the existing frontend stack:
+
+- Vite;
+- Vanilla JavaScript;
+- Tailwind CSS.
+
+No backend service, server, database, authentication, or payment flow is included.
+
+---
+
+### Criterion 6 — No Feature Creep
+
+Status: PASSED
+
+Reason:
+
+The plan does not add:
+
+- real flight API;
+- backend;
+- authentication;
+- payment;
+- user accounts;
+- saved searches;
+- favorites;
+- advanced filters;
+- multi-city routing;
+- multiple stopovers.
+
+Sorting is included because it is explicitly part of MVP v2.
+
+---
+
+## Decision
+
+Plan is ready for MVP v2 implementation.
+
+---
+
+## Send Back To Producer
+
+Status: PASSED  
+Required Action: can start implementation
+
+---
+
+# 8. Final Controller Status
 
 ```text
-Expected Output: PASSED or NEEDS_REVISION
-Next Step If PASSED: Start Wave 1 — Data Model Upgrade
-Next Step If NEEDS_REVISION: Return to Producer
+Controller Output v2 created.
+Status: PASSED
+Next Step: Start Wave 1 — Data Model Upgrade
 ```
