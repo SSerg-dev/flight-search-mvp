@@ -1,8 +1,7 @@
 import './styles/input.css';
 import { createSearchForm, createSearchQueryFromFormData } from './components/searchForm.js';
 import { createResultsList } from './components/resultsList.js';
-import { mockFlights } from './data/mockFlights.js';
-import { searchFlights } from './utils/searchFlights.js';
+import { searchFlightOffers } from './services/flightService.js';
 import { validateSearchQuery } from './utils/validation.js';
 
 const app = document.querySelector('#app');
@@ -14,7 +13,7 @@ function renderSearchForm(options) {
   app.querySelector('form').addEventListener('submit', handleSearchSubmit);
 }
 
-function handleSearchSubmit(event) {
+async function handleSearchSubmit(event) {
   event.preventDefault();
 
   const query = createSearchQueryFromFormData(new FormData(event.currentTarget));
@@ -32,7 +31,7 @@ function handleSearchSubmit(event) {
   renderSearchForm({
     values: query,
     errors: {},
-    results: searchFlights(query, mockFlights),
+    results: await searchFlightOffers(query),
   });
 }
 
