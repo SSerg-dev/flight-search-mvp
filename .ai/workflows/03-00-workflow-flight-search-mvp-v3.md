@@ -23,8 +23,8 @@ with manual orchestration.
 ```text
 MVP v1: COMPLETED
 MVP v2: CODE COMPLETE
-MVP v3: WAVE 6 AUTOMATED CHECKS COMPLETE
-NEXT_STEP: BROWSER_SMOKE_CHECK
+MVP v3: WAVE 7 COMPLETE
+NEXT_STEP: WAVE 8 SEARCH FORM AIRPORT MAPPING
 ```
 
 ---
@@ -416,16 +416,75 @@ Pending:
 
 ---
 
-## Wave 7 — RED Test v3
+## Wave 7 — Airport Metadata Dataset Layer
+
+Goal:
+
+Add a local airport metadata lookup layer using an OurAirports-style dataset.
+
+Tasks:
+
+- document airport metadata boundary
+- add local airport metadata fixture
+- include demo route airports
+- create airport lookup service
+- support IATA lookup
+- support text search by city, airport name, country, and aliases
+- add airport metadata service tests
+
+Exit Criteria:
+
+```text
+AIRPORT_METADATA_BOUNDARY_DEFINED
+LOCAL_AIRPORT_METADATA_READY
+AIRPORT_LOOKUP_SERVICE_READY
+```
+
+Result:
+
+```text
+WAVE_7 = COMPLETED
+AIRPORT_METADATA_BOUNDARY_DEFINED
+LOCAL_AIRPORT_METADATA_READY
+AIRPORT_LOOKUP_SERVICE_READY
+```
+
+Artifacts:
+
+- `.ai/architecture/03-03-airport-metadata-boundary-v3.md`
+- `.ai/workflows/03-07-wave-7-exit-checklist-v3.md`
+- `src/data/airports.js`
+- `src/services/airportMetadataService.js`
+- `test/airportMetadataService.test.js`
+
+---
+
+## Wave 8 — Search Form Airport Mapping
+
+Goal:
+
+Map user route text to airport metadata before real Amadeus proxy requests.
+
+Status:
+
+```text
+NEXT
+```
+
+---
+
+## RED Test v3
 
 Checklist:
 
 - API provider decision documented
+- airport metadata source documented
 - integration boundary documented
 - environment configuration documented
 - mock fallback works
 - adapter selection works
 - response normalization works
+- airport metadata lookup works
 - real API request flow works with mocked responses
 - loading state works
 - error state works
@@ -440,11 +499,11 @@ Checklist:
 Result:
 
 ```text
-RED TEST v3 = WAVE 6 AUTOMATED CHECKS COMPLETE
+RED TEST v3 = WAVE 7 COMPLETE
 
-Flight Search MVP v3 = BROWSER_SMOKE_CHECK_PENDING
+Flight Search MVP v3 = READY_FOR_SEARCH_FORM_AIRPORT_MAPPING
 
-READY_FOR_BROWSER_VERIFICATION
+READY_FOR_WAVE_8
 ```
 
 ---

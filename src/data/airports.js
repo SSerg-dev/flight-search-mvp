@@ -1,0 +1,32 @@
+export const airports = [
+  {
+    id: 'bos-general-edward-lawrence-logan-international-airport',
+    iata: 'BOS',
+    name: 'General Edward Lawrence Logan International Airport',
+    city: 'Boston',
+    country: 'United States',
+    latitude: 42.3643,
+    longitude: -71.0052,
+    aliases: ['Boston Logan', 'Logan Airport'],
+  },
+  {
+    id: 'ist-istanbul-airport',
+    iata: 'IST',
+    name: 'Istanbul Airport',
+    city: 'Istanbul',
+    country: 'Turkey',
+    latitude: 41.2753,
+    longitude: 28.7519,
+    aliases: ['Istanbul Havalimani'],
+  },
+  {
+    id: 'led-pulkovo-airport',
+    iata: 'LED',
+    name: 'Pulkovo Airport',
+    city: 'Saint Petersburg',
+    country: 'Russia',
+    latitude: 59.8003,
+    longitude: 30.2625,
+    aliases: ['St Petersburg', 'Saint Petersburg Pulkovo'],
+  },
+];
