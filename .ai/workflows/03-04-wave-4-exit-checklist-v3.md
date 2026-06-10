@@ -1,4 +1,4 @@
-# 06-04 Wave 4 Exit Checklist — Flight Search MVP v3
+# 03-04 Wave 4 Exit Checklist — Flight Search MVP v3
 
 ## Wave
 

@@ -1,4 +1,4 @@
-# 05-00 Workflow Package — Flight Search MVP v2
+# 02-00 Workflow Package — Flight Search MVP v2
 
 ## Purpose
 

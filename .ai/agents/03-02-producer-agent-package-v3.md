@@ -1,4 +1,4 @@
-# 06-02 Producer Agent Package v3 — Flight Search MVP v3
+# 03-02 Producer Agent Package v3 — Flight Search MVP v3
 
 ## Purpose
 
@@ -91,7 +91,7 @@ Expected Analyst recommendations:
 Workflow file:
 
 ```text
-06-00-workflow-flight-search-mvp-v3.md
+03-00-workflow-flight-search-mvp-v3.md
 ```
 
 Workflow waves:
@@ -255,7 +255,7 @@ Integrate real flight data through a safe provider-agnostic adapter boundary.
 ## Source Inputs
 
 - Analyst Output v3
-- 06-00-workflow-flight-search-mvp-v3.md
+- 03-00-workflow-flight-search-mvp-v3.md
 - current MVP v2 application state
 
 ## Provider Direction
@@ -425,7 +425,7 @@ MVP v3 should preserve the existing MVP v2 UI contract while preparing the servi
 ## Source Inputs
 
 - Analyst Output v3
-- `.ai/workflows/06-00-workflow-flight-search-mvp-v3.md`
+- `.ai/workflows/03-00-workflow-flight-search-mvp-v3.md`
 - current MVP v2 application state
 
 ---

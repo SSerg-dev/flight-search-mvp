@@ -1,4 +1,4 @@
-# 04-00 Workflow Package — Flight Search Frontend MVP
+# 01-00 Workflow Package — Flight Search Frontend MVP
 
 ## Purpose
 
@@ -53,10 +53,10 @@ No automatic orchestration is used yet.
 Use four main `.md` files:
 
 ```text
-04-00-workflow-flight-search-mvp.md
-04-01-analyst-agent-package.md
-04-02-producer-agent-package.md
-04-03-controller-agent-package.md
+01-00-workflow-flight-search-mvp.md
+01-01-analyst-agent-package.md
+01-02-producer-agent-package.md
+01-03-controller-agent-package.md
 ```
 
 No ZIP package is required.
@@ -79,12 +79,12 @@ flight-search-mvp/
 
 ├── .ai/
 │   ├── workflows/
-│   │   └── 04-00-workflow-flight-search-mvp.md
+│   │   └── 01-00-workflow-flight-search-mvp.md
 │   │
 │   ├── agents/
-│   │   ├── 04-01-analyst-agent-package.md
-│   │   ├── 04-02-producer-agent-package.md
-│   │   └── 04-03-controller-agent-package.md
+│   │   ├── 01-01-analyst-agent-package.md
+│   │   ├── 01-02-producer-agent-package.md
+│   │   └── 01-03-controller-agent-package.md
 │   │
 │   ├── memory/
 │   │   ├── decisions.md
@@ -421,10 +421,10 @@ Mock results = realistic fake flight data.
 Read files in this order:
 
 ```text
-1. .ai/workflows/04-00-workflow-flight-search-mvp.md
-2. .ai/agents/04-01-analyst-agent-package.md
-3. .ai/agents/04-02-producer-agent-package.md
-4. .ai/agents/04-03-controller-agent-package.md
+1. .ai/workflows/01-00-workflow-flight-search-mvp.md
+2. .ai/agents/01-01-analyst-agent-package.md
+3. .ai/agents/01-02-producer-agent-package.md
+4. .ai/agents/01-03-controller-agent-package.md
 ```
 
 Then implement only the current wave.

@@ -1,4 +1,4 @@
-# 05-02 Producer Agent Package v2 — Flight Search MVP v2
+# 02-02 Producer Agent Package v2 — Flight Search MVP v2
 
 ## Purpose
 
@@ -79,7 +79,7 @@ Expected Analyst recommendations:
 Workflow file:
 
 ```text
-05-00-workflow-flight-search-mvp-v2.md
+02-00-workflow-flight-search-mvp-v2.md
 ```
 
 Workflow waves:
@@ -213,7 +213,7 @@ Prepare the application for real-world flight data without connecting a real API
 ## Source Inputs
 
 - Analyst Output v2
-- 05-00-workflow-flight-search-mvp-v2.md
+- 02-00-workflow-flight-search-mvp-v2.md
 
 ## Implementation Plan
 
@@ -346,7 +346,7 @@ MVP v2 keeps the app frontend-only and mock-data-backed, but introduces a more p
 ## Source Inputs
 
 - Analyst Output v2
-- `.ai/workflows/05-00-workflow-flight-search-mvp-v2.md`
+- `.ai/workflows/02-00-workflow-flight-search-mvp-v2.md`
 - current MVP v1 application state
 
 ---

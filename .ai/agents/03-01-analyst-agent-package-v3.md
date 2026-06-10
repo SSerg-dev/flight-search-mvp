@@ -1,4 +1,4 @@
-# 06-01 Analyst Agent Package v3 — Flight Search MVP v3
+# 03-01 Analyst Agent Package v3 — Flight Search MVP v3
 
 ## Purpose
 

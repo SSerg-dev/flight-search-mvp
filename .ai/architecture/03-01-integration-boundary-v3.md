@@ -1,4 +1,4 @@
-# 06-01 Integration Boundary — Flight Search MVP v3
+# 03-01 Integration Boundary — Flight Search MVP v3
 
 ## Purpose
 

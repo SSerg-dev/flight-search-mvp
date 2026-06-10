@@ -1,4 +1,4 @@
-# 06-03 Wave 3 Exit Checklist — Flight Search MVP v3
+# 03-03 Wave 3 Exit Checklist — Flight Search MVP v3
 
 ## Wave
 

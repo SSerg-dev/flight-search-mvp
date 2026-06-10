@@ -1,4 +1,4 @@
-# 06-00 Workflow Package — Flight Search MVP v3
+# 03-00 Workflow Package — Flight Search MVP v3
 
 ## Purpose
 
@@ -91,22 +91,22 @@ while avoiding direct UI coupling to any provider-specific response shape.
 
 ```text
 Step 1
-Finalize 06-00-workflow-flight-search-mvp-v3.md
+Finalize 03-00-workflow-flight-search-mvp-v3.md
 
 Step 2
-Create 06-01-analyst-agent-package-v3.md
+Create 03-01-analyst-agent-package-v3.md
 
 Step 3
 Run Analyst v3
 
 Step 4
-Create 06-02-producer-agent-package-v3.md
+Create 03-02-producer-agent-package-v3.md
 
 Step 5
 Run Producer v3
 
 Step 6
-Create 06-03-controller-agent-package-v3.md
+Create 03-03-controller-agent-package-v3.md
 
 Step 7
 Run Controller v3
@@ -199,9 +199,9 @@ NORMALIZED_FLIGHT_OFFER_CONTRACT_DEFINED
 Artifacts:
 
 - `.ai/decisions/06-01-api-provider-decision-v3.md`
-- `.ai/architecture/06-01-integration-boundary-v3.md`
-- `.ai/architecture/06-02-normalized-flight-offer-contract-v3.md`
-- `.ai/workflows/06-01-wave-1-exit-checklist-v3.md`
+- `.ai/architecture/03-01-integration-boundary-v3.md`
+- `.ai/architecture/03-02-normalized-flight-offer-contract-v3.md`
+- `.ai/workflows/03-01-wave-1-exit-checklist-v3.md`
 
 ---
 
@@ -239,7 +239,7 @@ Artifacts:
 - `.env.example`
 - `src/config/apiConfig.js`
 - `test/apiConfig.test.js`
-- `.ai/workflows/06-02-wave-2-exit-checklist-v3.md`
+- `.ai/workflows/03-02-wave-2-exit-checklist-v3.md`
 
 ---
 
@@ -278,7 +278,7 @@ Artifacts:
 - `src/services/adapters/amadeusFlightAdapter.js`
 - `src/services/flightService.js`
 - `test/flightService.test.js`
-- `.ai/workflows/06-03-wave-3-exit-checklist-v3.md`
+- `.ai/workflows/03-03-wave-3-exit-checklist-v3.md`
 
 ---
 
@@ -320,7 +320,7 @@ Artifacts:
 - `test/fixtures/amadeusFlightOffers.js`
 - `src/services/normalizers/amadeusFlightNormalizer.js`
 - `test/amadeusFlightNormalizer.test.js`
-- `.ai/workflows/06-04-wave-4-exit-checklist-v3.md`
+- `.ai/workflows/03-01-wave-4-exit-checklist-v3.md`
 
 ---
 
@@ -362,7 +362,7 @@ Artifacts:
 - `src/services/adapters/amadeusFlightAdapter.js`
 - `test/amadeusProxyClient.test.js`
 - `test/flightService.test.js`
-- `.ai/workflows/06-05-wave-5-exit-checklist-v3.md`
+- `.ai/workflows/03-02-wave-5-exit-checklist-v3.md`
 
 ---
 
@@ -403,7 +403,7 @@ Artifacts:
 - `test/resultsList.test.js`
 - `src/components/resultCard.js`
 - `src/components/resultsList.js`
-- `.ai/workflows/06-06-wave-6-exit-checklist-v3.md`
+- `.ai/workflows/03-03-wave-6-exit-checklist-v3.md`
 
 Pending:
 

@@ -1,4 +1,4 @@
-# 04-01 Analyst Agent Package — Flight Search Frontend MVP
+# 01-01 Analyst Agent Package — Flight Search Frontend MVP
 
 ## Purpose
 

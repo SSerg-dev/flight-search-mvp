@@ -1,4 +1,4 @@
-# 06-02 Normalized Flight Offer Contract — Flight Search MVP v3
+# 03-02 Normalized Flight Offer Contract — Flight Search MVP v3
 
 ## Purpose
 
