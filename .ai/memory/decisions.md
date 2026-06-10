@@ -21,7 +21,8 @@ These decisions should remain stable unless the user explicitly changes them.
 - Use Windsurf as the implementation IDE.
 - Keep the MVP frontend-only.
 - Use manual agent orchestration for now.
-- MVP v3 provider direction: Amadeus Self-Service APIs first.
+- MVP v3 airport metadata source: OurAirports local dataset.
+- MVP v3 flight offers source: Amadeus Self-Service APIs via backend/serverless proxy.
 - MVP v3 secondary provider: Duffel API.
 - MVP v3 real API credentials require a backend/serverless proxy.
 - MVP v3 must keep mock fallback for local development and tests.

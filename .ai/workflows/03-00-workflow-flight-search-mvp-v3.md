@@ -54,6 +54,7 @@ Integrate real flight data safely.
 Improve:
 
 - API provider selection
+- airport metadata source selection
 - API integration boundary
 - environment configuration
 - service adapter architecture
@@ -173,7 +174,8 @@ Choose the real flight API direction and define where provider-specific logic be
 Tasks:
 
 - compare API provider candidates
-- choose preferred provider or shortlist
+- choose airport metadata source
+- choose preferred flight offers provider or shortlist
 - decide whether frontend calls a backend/proxy or local mock adapter
 - define required environment variables
 - define service adapter interface
@@ -194,11 +196,12 @@ WAVE_1 = COMPLETED
 API_PROVIDER_DECISION_READY
 INTEGRATION_BOUNDARY_DEFINED
 NORMALIZED_FLIGHT_OFFER_CONTRACT_DEFINED
+AIRPORT_METADATA_SOURCE_SELECTED
 ```
 
 Artifacts:
 
-- `.ai/decisions/06-01-api-provider-decision-v3.md`
+- `.ai/decisions/03-01-api-provider-decision-v3.md`
 - `.ai/architecture/03-01-integration-boundary-v3.md`
 - `.ai/architecture/03-02-normalized-flight-offer-contract-v3.md`
 - `.ai/workflows/03-01-wave-1-exit-checklist-v3.md`

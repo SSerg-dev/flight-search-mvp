@@ -1,4 +1,4 @@
-# 06-01 API Provider Decision — Flight Search MVP v3
+# 03-01 API Provider Decision — Flight Search MVP v3
 
 ## Purpose
 
@@ -10,7 +10,13 @@ MVP v3 introduces real flight API integration planning while keeping mock mode a
 
 # Decision
 
-Preferred first provider:
+Airport metadata source:
+
+```text
+OurAirports local dataset
+```
+
+Flight offers source:
 
 ```text
 Amadeus Self-Service APIs
@@ -42,6 +48,22 @@ Amadeus is the preferred first provider because it fits the MVP v3 search-only g
 - maps reasonably well to the existing normalized flight result shape.
 
 Amadeus should be used first for search and offer data only.
+
+---
+
+# Why OurAirports For Airport Metadata
+
+OurAirports is the selected airport metadata source because it fits the app's lookup and enrichment needs without adding another secret-bearing runtime dependency.
+
+OurAirports should be used as a local dataset for:
+
+- airport and city metadata;
+- IATA code lookup support;
+- airport display names;
+- country and region metadata where useful;
+- deterministic local development and tests.
+
+OurAirports should not be used for live flight offers, fares, availability, booking, or schedule/status data.
 
 ---
 
