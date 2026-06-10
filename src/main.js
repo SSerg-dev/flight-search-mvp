@@ -3,6 +3,7 @@ import { createSearchForm, createSearchQueryFromFormData, searchFormDefaults } f
 import { createResultsList } from './components/resultsList.js';
 import { createSearchStatus } from './components/searchStatus.js';
 import { searchFlightOffers } from './services/flightService.js';
+import { sortFlights } from './utils/sortFlights.js';
 import { validateSearchQuery } from './utils/validation.js';
 
 const app = document.querySelector('#app');
@@ -13,6 +14,7 @@ const appState = {
   results: undefined,
   isLoading: false,
   serviceError: '',
+  sortBy: 'price',
 };
 
 renderApp();
@@ -28,8 +30,9 @@ function renderApp() {
       isLoading: appState.isLoading,
       serviceError: appState.serviceError,
     }) +
-    createResultsMarkup(appState.results);
+    createResultsMarkup(appState.results, appState.sortBy);
   app.querySelector('form').addEventListener('submit', handleSearchSubmit);
+  app.querySelector('#sortBy')?.addEventListener('change', handleSortChange);
 }
 
 async function handleSearchSubmit(event) {
@@ -67,10 +70,15 @@ async function handleSearchSubmit(event) {
   }
 }
 
-function createResultsMarkup(results) {
+function handleSortChange(event) {
+  appState.sortBy = event.currentTarget.value;
+  renderApp();
+}
+
+function createResultsMarkup(results, sortBy) {
   if (!Array.isArray(results)) {
     return '';
   }
 
-  return createResultsList(results);
+  return createResultsList(sortFlights(results, sortBy), { sortBy });
 }

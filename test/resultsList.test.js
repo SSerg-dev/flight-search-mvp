@@ -27,6 +27,16 @@ test('results list renders matching result cards', () => {
   assert.match(markup, new RegExp(mockFlights[1].airline.name));
 });
 
+test('results list renders an accessible sorting dropdown', () => {
+  const markup = createResultsList(mockFlights.slice(0, 2), { sortBy: 'duration' });
+
+  assert.match(markup, /<label[\s\S]*for="sortBy"[\s\S]*Sort results/);
+  assert.match(markup, /name="sortBy"/);
+  assert.match(markup, /Sort by price/);
+  assert.match(markup, /Sort by duration/);
+  assert.match(markup, /value="duration" selected/);
+});
+
 test('result cards and results list include responsive and interactive polish', () => {
   const cardMarkup = createResultCard(mockFlights[0]);
   const listMarkup = createResultsList(mockFlights.slice(0, 1));
