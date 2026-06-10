@@ -28,8 +28,12 @@ These constraints define what must not be changed or added during MVP implementa
 
 # Technical Constraints
 
-- No backend.
-- No real flight API.
+- MVP v1 and MVP v2 are frontend-only.
+- MVP v3 may define a backend/serverless proxy boundary for real API credentials.
+- Do not expose real API secrets in frontend code.
+- Do not commit API keys, API secrets, bearer tokens, or access tokens.
+- Do not put real provider secrets in `VITE_` environment variables.
+- Keep mock mode available for local development and tests.
 - No authentication.
 - No payment.
 - No search history.

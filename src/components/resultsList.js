@@ -15,7 +15,7 @@ export function createResultsList(flights = [], { sortBy = 'price' } = {}) {
       <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
         <div>
           <h2 class="text-xl font-semibold text-slate-950">${flights.length} matching flights</h2>
-          <p class="mt-1 text-sm text-slate-600">Prices are mock USD estimates for the selected route.</p>
+          <p class="mt-1 text-sm text-slate-600">Prices are estimates for the selected route.</p>
         </div>
         <label class="grid gap-1 text-sm font-medium text-slate-700" for="sortBy">
           Sort results

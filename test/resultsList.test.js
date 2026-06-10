@@ -4,6 +4,10 @@ import test from 'node:test';
 import { mockFlights } from '../src/data/mockFlights.js';
 import { createResultCard } from '../src/components/resultCard.js';
 import { createResultsList } from '../src/components/resultsList.js';
+import {
+  missingOptionalNormalizedFlightOffer,
+  realisticNormalizedFlightOffer,
+} from './fixtures/normalizedFlightOffers.js';
 
 test('result card renders flight route, airline, price, dates, layover, and duration', () => {
   const markup = createResultCard(mockFlights[0]);
@@ -25,6 +29,33 @@ test('results list renders matching result cards', () => {
   assert.match(markup, /2 matching flights/);
   assert.match(markup, new RegExp(mockFlights[0].airline.name));
   assert.match(markup, new RegExp(mockFlights[1].airline.name));
+});
+
+test('result card handles realistic normalized provider data', () => {
+  const markup = createResultCard(realisticNormalizedFlightOffer);
+
+  assert.match(markup, /Very Long International Airways &amp; Partners/);
+  assert.match(markup, /VL1234 \/ VL9876/);
+  assert.match(markup, /1042.5 EUR/);
+  assert.match(markup, /EUR total for 2 adults/);
+  assert.match(markup, /Boston to Istanbul to Saint Petersburg/);
+});
+
+test('result card uses safe display fallbacks for missing optional provider fields', () => {
+  const markup = createResultCard(missingOptionalNormalizedFlightOffer);
+
+  assert.match(markup, /Unknown airline/);
+  assert.match(markup, /Flight details pending/);
+  assert.match(markup, /Price unavailable/);
+  assert.doesNotMatch(markup, /undefined/);
+  assert.doesNotMatch(markup, /null/);
+});
+
+test('results list copy works for mock or real provider estimates', () => {
+  const markup = createResultsList([realisticNormalizedFlightOffer]);
+
+  assert.match(markup, /Prices are estimates for the selected route/);
+  assert.doesNotMatch(markup, /mock USD/);
 });
 
 test('results list renders an accessible sorting dropdown', () => {

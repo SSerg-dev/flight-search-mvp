@@ -22,8 +22,8 @@ with manual orchestration.
 
 ```text
 MVP v1: COMPLETED
-MVP v2: PLANNING
-NEXT_STEP: START_ANALYST_V2
+MVP v2: CODE COMPLETE
+NEXT_STEP: BROWSER_SMOKE_CHECK
 ```
 
 ---
@@ -225,12 +225,24 @@ Checklist:
 Result:
 
 ```text
-RED TEST v2 = PASSED
+RED TEST v2 = AUTOMATED CHECKS PASSED
 
-Flight Search MVP v2 = COMPLETED
+Flight Search MVP v2 = CODE COMPLETE
 
-READY_FOR_REAL_API
+READY_FOR_BROWSER_SMOKE_CHECK
 ```
+
+Verification evidence:
+
+- `npm test` passes 32 tests.
+- `npm run build` completes successfully.
+- Local Vite server responds with HTTP 200 at `http://127.0.0.1:5173`.
+
+Pending manual/browser verification:
+
+- Desktop layout smoke check
+- Mobile layout smoke check
+- Browser console error check
 
 ---
 

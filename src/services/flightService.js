@@ -1,20 +1,23 @@
-import { mockFlights } from '../data/mockFlights.js';
-import { searchFlights } from '../utils/searchFlights.js';
+import { FLIGHT_API_MODES, getApiConfig } from '../config/apiConfig.js';
+import { searchAmadeusFlightOffers } from './adapters/amadeusFlightAdapter.js';
+import { searchMockFlightOffers } from './adapters/mockFlightAdapter.js';
 
-const DEFAULT_DELAY_MS = 150;
+export async function searchFlightOffers(query, options = {}) {
+  const config = getApiConfig(options.env);
 
-export async function searchFlightOffers(query, { delayMs = DEFAULT_DELAY_MS, shouldFail = false } = {}) {
-  await wait(delayMs);
-
-  if (shouldFail) {
-    throw new Error('Mock flight service failed.');
+  if (config.requestedMode === FLIGHT_API_MODES.AMADEUS && config.errors.proxyUrl) {
+    throw new Error(config.errors.proxyUrl);
   }
 
-  return searchFlights(query, mockFlights);
-}
+  if (config.mode === FLIGHT_API_MODES.AMADEUS) {
+    return searchAmadeusFlightOffers(query, {
+      ...options,
+      config,
+    });
+  }
 
-function wait(delayMs) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, delayMs);
+  return searchMockFlightOffers(query, {
+    ...options,
+    config,
   });
 }
