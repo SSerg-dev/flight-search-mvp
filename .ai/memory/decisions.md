@@ -22,8 +22,9 @@ These decisions should remain stable unless the user explicitly changes them.
 - Keep the MVP frontend-only.
 - Use manual agent orchestration for now.
 - MVP v3 airport metadata source: OurAirports local dataset.
-- MVP v3 flight offers source: Amadeus Self-Service APIs via backend/serverless proxy.
-- MVP v3 secondary provider: Duffel API.
+- MVP v3 flight offers source: Duffel API via backend/serverless proxy.
+- MVP v3 legacy flight offers source: Amadeus Self-Service APIs via backend/serverless proxy.
+- MVP v3 Amadeus Self-Service path is deprecated risk because the self-service portal is scheduled for decommissioning on 2026-07-17.
 - MVP v3 real API credentials require a backend/serverless proxy.
 - MVP v3 must keep mock fallback for local development and tests.
 
@@ -43,5 +44,5 @@ These decisions should remain stable unless the user explicitly changes them.
 ```text
 DOCUMENTATION_STATUS: COMPLETE
 AGENT_SYSTEM_STATUS: PASSED
-IMPLEMENTATION_STATUS: MVP_V3_WAVE_10_COMPLETE
+IMPLEMENTATION_STATUS: MVP_V3_WAVE_12_CODE_COMPLETE_UNCOMMITTED
 ```

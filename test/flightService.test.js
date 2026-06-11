@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import { searchFlightOffers } from '../src/services/flightService.js';
 import { amadeusFlightOffersFixture } from './fixtures/amadeusFlightOffers.js';
+import { duffelOfferRequestFixture } from './fixtures/duffelOfferRequest.js';
 
 const baseQuery = {
   from: 'Boston',
@@ -64,12 +65,85 @@ test('searchFlightOffers falls back to mock adapter for unsupported mode', async
   const results = await searchFlightOffers(baseQuery, {
     delayMs: 0,
     env: {
-      VITE_FLIGHT_API_MODE: 'duffel',
+      VITE_FLIGHT_API_MODE: 'unknown',
     },
   });
 
   assert.ok(results.length >= 2);
   assert.ok(results.every((flight) => flight.route.origin.city === baseQuery.from));
+});
+
+test('searchFlightOffers fails safely when Duffel mode has no proxy URL', async () => {
+  await assert.rejects(
+    searchFlightOffers(baseQuery, {
+      delayMs: 0,
+      env: {
+        VITE_FLIGHT_API_MODE: 'duffel',
+      },
+    }),
+    {
+      message: 'Flight API proxy URL is required for Duffel mode.',
+    },
+  );
+});
+
+test('searchFlightOffers returns normalized Duffel offers through configured proxy', async () => {
+  const fetchImpl = async () => ({
+    ok: true,
+    json: async () => duffelOfferRequestFixture,
+  });
+
+  const results = await searchFlightOffers(baseQuery, {
+    fetchImpl,
+    env: {
+      VITE_FLIGHT_API_MODE: 'duffel',
+      VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/duffel-flights',
+    },
+  });
+
+  assert.equal(results.length, 1);
+  assert.equal(results[0].airline.name, 'Turkish Airlines');
+  assert.equal(results[0].airline.code, 'TK');
+  assert.equal(results[0].price.display, '$912.4');
+  assert.equal(results[0].route.stopover.city, 'Istanbul');
+});
+
+test('searchFlightOffers sends resolved airport IATA codes in Duffel proxy payload', async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+
+    return {
+      ok: true,
+      json: async () => duffelOfferRequestFixture,
+    };
+  };
+
+  await searchFlightOffers(baseQuery, {
+    fetchImpl,
+    env: {
+      VITE_FLIGHT_API_MODE: 'duffel',
+      VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/duffel-flights',
+    },
+  });
+
+  const payload = JSON.parse(calls[0].init.body);
+
+  assert.equal(payload.provider, 'duffel');
+  assert.deepEqual(payload.route, {
+    from: {
+      query: 'Boston',
+      iata: 'BOS',
+    },
+    via: {
+      query: 'Istanbul',
+      iata: 'IST',
+    },
+    to: {
+      query: 'Saint Petersburg',
+      iata: 'LED',
+    },
+  });
 });
 
 test('searchFlightOffers fails safely when Amadeus mode has no proxy URL', async () => {

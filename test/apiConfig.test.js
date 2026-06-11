@@ -24,13 +24,25 @@ test('uses mock mode when API mode is explicitly mock', () => {
 });
 
 test('falls back to mock mode for unsupported API mode', () => {
+  assert.deepEqual(getApiConfig({ VITE_FLIGHT_API_MODE: 'unknown' }), {
+    mode: 'mock',
+    requestedMode: 'unknown',
+    proxyUrl: '',
+    isRealApiEnabled: false,
+    errors: {
+      mode: 'Unsupported flight API mode. Falling back to mock mode.',
+    },
+  });
+});
+
+test('requires a proxy URL for Duffel mode', () => {
   assert.deepEqual(getApiConfig({ VITE_FLIGHT_API_MODE: 'duffel' }), {
     mode: 'mock',
     requestedMode: 'duffel',
     proxyUrl: '',
     isRealApiEnabled: false,
     errors: {
-      mode: 'Unsupported flight API mode. Falling back to mock mode.',
+      proxyUrl: 'Flight API proxy URL is required for Duffel mode.',
     },
   });
 });
@@ -57,6 +69,22 @@ test('enables real API mode when Amadeus mode has a proxy URL', () => {
       mode: 'amadeus',
       requestedMode: 'amadeus',
       proxyUrl: 'https://example.com/api/flights',
+      isRealApiEnabled: true,
+      errors: {},
+    },
+  );
+});
+
+test('enables real API mode when Duffel mode has a proxy URL', () => {
+  assert.deepEqual(
+    getApiConfig({
+      VITE_FLIGHT_API_MODE: 'duffel',
+      VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/duffel-flights',
+    }),
+    {
+      mode: 'duffel',
+      requestedMode: 'duffel',
+      proxyUrl: 'https://example.com/api/duffel-flights',
       isRealApiEnabled: true,
       errors: {},
     },

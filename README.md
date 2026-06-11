@@ -10,7 +10,7 @@ Frontend MVP for searching flights with one mandatory stop.
 
 ## Current Wave
 
-MVP v3: Wave 10 — Backend/serverless proxy.
+MVP v3: Wave 12 — New provider adapter skeleton.
 
 Automated verification:
 
@@ -28,13 +28,22 @@ VITE_FLIGHT_API_MODE=mock
 Future real API mode must use a frontend-safe proxy URL:
 
 ```text
-VITE_FLIGHT_API_MODE=amadeus
-VITE_FLIGHT_API_PROXY_URL=/api/flights
+VITE_FLIGHT_API_MODE=duffel
+VITE_FLIGHT_API_PROXY_URL=/api/duffel-flights
 ```
 
-Do not put Amadeus API keys, API secrets, bearer tokens, or access tokens in frontend `VITE_` variables. Real provider credentials belong behind a backend/serverless proxy.
+Do not put provider API keys, API secrets, bearer tokens, or access tokens in frontend `VITE_` variables. Real provider credentials belong behind a backend/serverless proxy.
 
-Server-side proxy configuration:
+Duffel is the preferred real flight provider after the Amadeus Self-Service portal decommissioning risk. Amadeus remains as a legacy/reference adapter path.
+
+Server-side Duffel proxy configuration:
+
+```text
+DUFFEL_ACCESS_TOKEN=your-server-side-duffel-token
+DUFFEL_API_BASE_URL=https://api.duffel.com
+```
+
+Legacy Amadeus proxy configuration:
 
 ```text
 AMADEUS_CLIENT_ID=your-server-side-client-id

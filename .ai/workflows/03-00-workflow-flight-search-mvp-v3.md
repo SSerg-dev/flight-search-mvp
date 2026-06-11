@@ -23,8 +23,8 @@ with manual orchestration.
 ```text
 MVP v1: COMPLETED
 MVP v2: CODE COMPLETE
-MVP v3: WAVE 10 COMPLETE
-NEXT_STEP: WAVE 11 LIVE CREDENTIAL SMOKE TEST OR PRODUCTION HARDENING
+MVP v3: WAVE 12 CODE COMPLETE
+NEXT_STEP: WAVE 13 DUFFEL BACKEND SERVERLESS PROXY
 ```
 
 ---
@@ -595,6 +595,83 @@ Artifacts:
 
 ---
 
+## Wave 11 — Provider Replacement Decision
+
+Goal:
+
+Replace Amadeus as the primary real flight provider because the Amadeus Self-Service portal is scheduled for decommissioning on 2026-07-17.
+
+Decision:
+
+```text
+PRIMARY_PROVIDER = DUFFEL
+LEGACY_REFERENCE_PROVIDER = AMADEUS
+NEXT_PROVIDER_ADAPTER = DUFFEL
+```
+
+Rationale:
+
+- Duffel has current official API documentation for flight offer requests.
+- Duffel supports offer request creation through a stable backend API boundary.
+- Duffel has test/live mode concepts that fit the MVP flow.
+- Duffel can be integrated behind the existing backend/serverless proxy pattern.
+- Amadeus Self-Service is now a decommissioning risk and should not remain the primary path.
+
+Artifacts:
+
+- `.ai/decisions/03-02-provider-replacement-decision-v3.md`
+- `.ai/workflows/03-11-wave-11-exit-checklist-v3.md`
+
+---
+
+## Wave 12 — New Provider Adapter Skeleton
+
+Goal:
+
+Add a Duffel frontend adapter skeleton that follows the existing provider-agnostic flight service boundary.
+
+Tasks:
+
+- add `duffel` API mode
+- preserve mock fallback for unsupported modes
+- require a proxy URL for Duffel mode
+- add Duffel proxy request mapping
+- resolve route text to IATA codes before proxy calls
+- add Duffel adapter module
+- add Duffel response normalizer skeleton
+- normalize mocked Duffel offer requests into the app flight shape
+- add tests for config, proxy mapping, adapter routing, and normalization
+
+Exit Criteria:
+
+```text
+DUFFEL_MODE_READY
+DUFFEL_ADAPTER_SKELETON_READY
+DUFFEL_NORMALIZER_SKELETON_READY
+AMADEUS_LEGACY_PATH_PRESERVED
+```
+
+Result:
+
+```text
+WAVE_12 = CODE_COMPLETE_UNCOMMITTED
+DUFFEL_MODE_READY
+DUFFEL_ADAPTER_SKELETON_READY
+DUFFEL_NORMALIZER_SKELETON_READY
+```
+
+Artifacts:
+
+- `src/services/adapters/duffelFlightAdapter.js`
+- `src/services/proxy/duffelProxyClient.js`
+- `src/services/normalizers/duffelFlightNormalizer.js`
+- `test/duffelProxyClient.test.js`
+- `test/duffelFlightNormalizer.test.js`
+- `test/fixtures/duffelOfferRequest.js`
+- `.ai/workflows/03-12-wave-12-exit-checklist-v3.md`
+
+---
+
 ## RED Test v3
 
 Checklist:
@@ -611,6 +688,8 @@ Checklist:
 - airport suggestions UI works
 - backend/serverless proxy keeps credentials server-side
 - backend/serverless proxy sends mandatory stopover to Amadeus
+- provider replacement decision completed
+- Duffel adapter skeleton works with mocked responses
 - real API request flow works with mocked responses
 - loading state works
 - error state works
@@ -625,11 +704,11 @@ Checklist:
 Result:
 
 ```text
-RED TEST v3 = WAVE 10 COMPLETE
+RED TEST v3 = WAVE 12 CODE COMPLETE
 
-Flight Search MVP v3 = READY_FOR_LIVE_CREDENTIAL_SMOKE_TEST
+Flight Search MVP v3 = READY_FOR_DUFFEL_BACKEND_SERVERLESS_PROXY
 
-READY_FOR_WAVE_11
+READY_FOR_WAVE_13
 ```
 
 ---

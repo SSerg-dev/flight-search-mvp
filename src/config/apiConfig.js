@@ -1,6 +1,7 @@
 export const FLIGHT_API_MODES = {
   MOCK: 'mock',
   AMADEUS: 'amadeus',
+  DUFFEL: 'duffel',
 };
 
 export function getApiConfig(env = getDefaultEnv()) {
@@ -20,8 +21,8 @@ export function getApiConfig(env = getDefaultEnv()) {
     };
   }
 
-  if (requestedMode === FLIGHT_API_MODES.AMADEUS && proxyUrl.length === 0) {
-    errors.proxyUrl = 'Flight API proxy URL is required for Amadeus mode.';
+  if (isProxyMode(requestedMode) && proxyUrl.length === 0) {
+    errors.proxyUrl = `Flight API proxy URL is required for ${getModeLabel(requestedMode)} mode.`;
 
     return {
       mode: FLIGHT_API_MODES.MOCK,
@@ -36,9 +37,21 @@ export function getApiConfig(env = getDefaultEnv()) {
     mode: requestedMode,
     requestedMode,
     proxyUrl,
-    isRealApiEnabled: requestedMode === FLIGHT_API_MODES.AMADEUS,
+    isRealApiEnabled: isProxyMode(requestedMode),
     errors,
   };
+}
+
+function isProxyMode(mode) {
+  return mode === FLIGHT_API_MODES.AMADEUS || mode === FLIGHT_API_MODES.DUFFEL;
+}
+
+function getModeLabel(mode) {
+  if (mode === FLIGHT_API_MODES.DUFFEL) {
+    return 'Duffel';
+  }
+
+  return 'Amadeus';
 }
 
 function normalizeMode(value) {
