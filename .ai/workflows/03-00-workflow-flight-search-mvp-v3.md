@@ -23,8 +23,8 @@ with manual orchestration.
 ```text
 MVP v1: COMPLETED
 MVP v2: CODE COMPLETE
-MVP v3: WAVE 9 COMPLETE
-NEXT_STEP: WAVE 10 BACKEND SERVERLESS PROXY
+MVP v3: WAVE 10 COMPLETE
+NEXT_STEP: WAVE 11 LIVE CREDENTIAL SMOKE TEST OR PRODUCTION HARDENING
 ```
 
 ---
@@ -547,6 +547,54 @@ Artifacts:
 
 ---
 
+## Wave 10 — Backend Serverless Proxy
+
+Goal:
+
+Create a backend/serverless boundary that can call Amadeus without exposing provider credentials to the frontend.
+
+Tasks:
+
+- add a Node-compatible serverless proxy module
+- read Amadeus credentials from server-only env vars
+- reject unsupported HTTP methods
+- validate frontend proxy payloads before provider calls
+- request an Amadeus OAuth access token server-side
+- call Amadeus Flight Offers Search with resolved IATA codes
+- preserve the mandatory `via` airport as an included connection point
+- map authorization failures safely
+- map rate limits safely
+- return provider JSON for existing frontend normalization
+- document server-only configuration
+- add proxy tests with mocked Amadeus responses
+
+Exit Criteria:
+
+```text
+BACKEND_PROXY_READY
+SERVER_SIDE_AMADEUS_CREDENTIALS_READY
+MANDATORY_STOPOVER_PROXY_PAYLOAD_READY
+```
+
+Result:
+
+```text
+WAVE_10 = COMPLETED
+BACKEND_PROXY_READY
+SERVER_SIDE_AMADEUS_CREDENTIALS_READY
+MANDATORY_STOPOVER_PROXY_PAYLOAD_READY
+```
+
+Artifacts:
+
+- `api/flights.js`
+- `test/amadeusServerlessProxy.test.js`
+- `.env.example`
+- `README.md`
+- `.ai/workflows/03-10-wave-10-exit-checklist-v3.md`
+
+---
+
 ## RED Test v3
 
 Checklist:
@@ -561,6 +609,8 @@ Checklist:
 - airport metadata lookup works
 - Amadeus proxy request includes resolved IATA codes
 - airport suggestions UI works
+- backend/serverless proxy keeps credentials server-side
+- backend/serverless proxy sends mandatory stopover to Amadeus
 - real API request flow works with mocked responses
 - loading state works
 - error state works
@@ -575,11 +625,11 @@ Checklist:
 Result:
 
 ```text
-RED TEST v3 = WAVE 9 COMPLETE
+RED TEST v3 = WAVE 10 COMPLETE
 
-Flight Search MVP v3 = READY_FOR_BACKEND_SERVERLESS_PROXY
+Flight Search MVP v3 = READY_FOR_LIVE_CREDENTIAL_SMOKE_TEST
 
-READY_FOR_WAVE_10
+READY_FOR_WAVE_11
 ```
 
 ---
