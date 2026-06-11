@@ -23,8 +23,8 @@ with manual orchestration.
 ```text
 MVP v1: COMPLETED
 MVP v2: CODE COMPLETE
-MVP v3: WAVE 12 CODE COMPLETE
-NEXT_STEP: WAVE 13 DUFFEL BACKEND SERVERLESS PROXY
+MVP v3: WAVE 14 CODE COMPLETE
+NEXT_STEP: WAVE 15 DUFFEL LIVE CREDENTIAL SMOKE TEST
 ```
 
 ---
@@ -672,6 +672,94 @@ Artifacts:
 
 ---
 
+## Wave 13 — Duffel Backend Serverless Proxy
+
+Goal:
+
+Create a Duffel backend/serverless proxy endpoint that keeps Duffel credentials server-side and returns provider offer request responses to the existing Duffel normalizer.
+
+Tasks:
+
+- add `api/duffel-flights.js`
+- read `DUFFEL_ACCESS_TOKEN` from server-only env vars
+- support optional `DUFFEL_API_BASE_URL`
+- reject unsupported HTTP methods
+- validate frontend Duffel proxy payloads before provider calls
+- call Duffel `POST /air/offer_requests?return_offers=true`
+- send `Authorization: Bearer <token>`
+- send `Duffel-Version: v2`
+- preserve the mandatory stopover as two slices
+- map authorization failures safely
+- map rate limits safely
+- return provider JSON for existing frontend normalization
+- add proxy tests with mocked Duffel responses
+
+Exit Criteria:
+
+```text
+DUFFEL_BACKEND_PROXY_READY
+SERVER_SIDE_DUFFEL_CREDENTIALS_READY
+MANDATORY_STOPOVER_DUFFEL_SLICES_READY
+```
+
+Result:
+
+```text
+WAVE_13 = CODE_COMPLETE_UNCOMMITTED
+DUFFEL_BACKEND_PROXY_READY
+SERVER_SIDE_DUFFEL_CREDENTIALS_READY
+MANDATORY_STOPOVER_DUFFEL_SLICES_READY
+```
+
+Artifacts:
+
+- `api/duffel-flights.js`
+- `test/duffelServerlessProxy.test.js`
+- `.ai/workflows/03-13-wave-13-exit-checklist-v3.md`
+
+---
+
+## Wave 14 — Duffel Local Deployment Wiring
+
+Goal:
+
+Wire the local Vite development server to the Duffel serverless proxy path so `/api/duffel-flights` can be exercised without a separate backend process.
+
+Tasks:
+
+- add a testable local dev middleware for `/api/duffel-flights`
+- forward request method and body to the Duffel serverless handler
+- write handler status, headers, and JSON body back to the dev response
+- ignore unrelated Vite paths
+- register the middleware in `vite.config.js`
+- document the local API wiring
+
+Exit Criteria:
+
+```text
+LOCAL_DUFFEL_PROXY_ROUTE_READY
+VITE_DEV_API_WIRING_READY
+SERVERLESS_HANDLER_REUSED_LOCALLY
+```
+
+Result:
+
+```text
+WAVE_14 = CODE_COMPLETE_UNCOMMITTED
+LOCAL_DUFFEL_PROXY_ROUTE_READY
+VITE_DEV_API_WIRING_READY
+SERVERLESS_HANDLER_REUSED_LOCALLY
+```
+
+Artifacts:
+
+- `src/dev/duffelApiDevMiddleware.js`
+- `test/duffelApiDevMiddleware.test.js`
+- `vite.config.js`
+- `.ai/workflows/03-14-wave-14-exit-checklist-v3.md`
+
+---
+
 ## RED Test v3
 
 Checklist:
@@ -690,6 +778,9 @@ Checklist:
 - backend/serverless proxy sends mandatory stopover to Amadeus
 - provider replacement decision completed
 - Duffel adapter skeleton works with mocked responses
+- Duffel backend/serverless proxy works with mocked responses
+- Duffel backend/serverless proxy keeps credentials server-side
+- local Vite dev server can route to Duffel serverless proxy
 - real API request flow works with mocked responses
 - loading state works
 - error state works
@@ -704,11 +795,11 @@ Checklist:
 Result:
 
 ```text
-RED TEST v3 = WAVE 12 CODE COMPLETE
+RED TEST v3 = WAVE 14 CODE COMPLETE
 
-Flight Search MVP v3 = READY_FOR_DUFFEL_BACKEND_SERVERLESS_PROXY
+Flight Search MVP v3 = READY_FOR_DUFFEL_LIVE_CREDENTIAL_SMOKE_TEST
 
-READY_FOR_WAVE_13
+READY_FOR_WAVE_15
 ```
 
 ---

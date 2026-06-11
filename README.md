@@ -10,7 +10,7 @@ Frontend MVP for searching flights with one mandatory stop.
 
 ## Current Wave
 
-MVP v3: Wave 12 — New provider adapter skeleton.
+MVP v3: Wave 14 — Duffel local deployment wiring.
 
 Automated verification:
 
@@ -43,6 +43,10 @@ DUFFEL_ACCESS_TOKEN=your-server-side-duffel-token
 DUFFEL_API_BASE_URL=https://api.duffel.com
 ```
 
+The proxy endpoint in `api/duffel-flights.js` accepts the frontend Duffel proxy payload, calls Duffel Offer Requests with server-side credentials, preserves the mandatory stopover as two slices, and returns the provider response for frontend normalization.
+
+During local Vite development, `vite.config.js` wires `/api/duffel-flights` to the same serverless handler so the frontend can call the Duffel proxy path without a separate backend process.
+
 Legacy Amadeus proxy configuration:
 
 ```text
@@ -51,4 +55,4 @@ AMADEUS_CLIENT_SECRET=your-server-side-client-secret
 AMADEUS_API_BASE_URL=https://test.api.amadeus.com
 ```
 
-The proxy endpoint in `api/flights.js` accepts the frontend Amadeus proxy payload, obtains an Amadeus OAuth token server-side, calls Flight Offers Search with the resolved IATA route and mandatory stopover, then returns the provider response for frontend normalization.
+The legacy Amadeus proxy endpoint in `api/flights.js` accepts the frontend Amadeus proxy payload, obtains an Amadeus OAuth token server-side, calls Flight Offers Search with the resolved IATA route and mandatory stopover, then returns the provider response for frontend normalization.
