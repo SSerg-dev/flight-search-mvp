@@ -23,8 +23,8 @@ with manual orchestration.
 ```text
 MVP v1: COMPLETED
 MVP v2: CODE COMPLETE
-MVP v3: WAVE 8 COMPLETE
-NEXT_STEP: WAVE 9 AIRPORT SUGGESTIONS OR BACKEND PROXY
+MVP v3: WAVE 9 COMPLETE
+NEXT_STEP: WAVE 10 BACKEND SERVERLESS PROXY
 ```
 
 ---
@@ -504,6 +504,49 @@ Artifacts:
 
 ---
 
+## Wave 9 — Airport Suggestions UI
+
+Goal:
+
+Guide route text entry with native airport suggestions before Amadeus mapping.
+
+Tasks:
+
+- add airport suggestions to `from` route input
+- add airport suggestions to `via` route input
+- add airport suggestions to `to` route input
+- include city names as selectable values
+- include IATA codes and airport names as suggestion labels
+- preserve the existing search query shape
+- preserve validation and error accessibility
+- avoid custom autocomplete state for this MVP wave
+- add search form tests
+
+Exit Criteria:
+
+```text
+AIRPORT_SUGGESTIONS_UI_READY
+SEARCH_QUERY_SHAPE_UNCHANGED
+NATIVE_AUTOCOMPLETE_READY
+```
+
+Result:
+
+```text
+WAVE_9 = COMPLETED
+AIRPORT_SUGGESTIONS_UI_READY
+SEARCH_QUERY_SHAPE_UNCHANGED
+NATIVE_AUTOCOMPLETE_READY
+```
+
+Artifacts:
+
+- `src/components/searchForm.js`
+- `test/searchForm.test.js`
+- `.ai/workflows/03-09-wave-9-exit-checklist-v3.md`
+
+---
+
 ## RED Test v3
 
 Checklist:
@@ -517,6 +560,7 @@ Checklist:
 - response normalization works
 - airport metadata lookup works
 - Amadeus proxy request includes resolved IATA codes
+- airport suggestions UI works
 - real API request flow works with mocked responses
 - loading state works
 - error state works
@@ -531,11 +575,11 @@ Checklist:
 Result:
 
 ```text
-RED TEST v3 = WAVE 8 COMPLETE
+RED TEST v3 = WAVE 9 COMPLETE
 
-Flight Search MVP v3 = READY_FOR_AIRPORT_SUGGESTIONS_OR_BACKEND_PROXY
+Flight Search MVP v3 = READY_FOR_BACKEND_SERVERLESS_PROXY
 
-READY_FOR_WAVE_9
+READY_FOR_WAVE_10
 ```
 
 ---

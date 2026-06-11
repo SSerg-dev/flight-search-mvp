@@ -45,6 +45,23 @@ test('search form renders all approved fields and the submit button', () => {
   assert.match(markup, /type="submit"/);
 });
 
+test('search form connects route fields to airport suggestions', () => {
+  const markup = searchForm.createSearchForm();
+
+  assert.match(markup, /id="from"[\s\S]*list="airport-suggestions"/);
+  assert.match(markup, /id="via"[\s\S]*list="airport-suggestions"/);
+  assert.match(markup, /id="to"[\s\S]*list="airport-suggestions"/);
+});
+
+test('search form renders airport suggestions with city, IATA, and airport name', () => {
+  const markup = searchForm.createSearchForm();
+
+  assert.match(markup, /<datalist id="airport-suggestions">/);
+  assert.match(markup, /value="Boston"[\s\S]*label="BOS - General Edward Lawrence Logan International Airport"/);
+  assert.match(markup, /value="Istanbul"[\s\S]*label="IST - Istanbul Airport"/);
+  assert.match(markup, /value="Saint Petersburg"[\s\S]*label="LED - Pulkovo Airport"/);
+});
+
 test('search form renders validation errors near related fields', () => {
   const markup = searchForm.createSearchForm({
     errors: {
@@ -75,6 +92,26 @@ test('creates the Wave 3 search query shape from submitted form data', () => {
   formData.set('maxLayover', '12');
 
   assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), searchForm.searchFormDefaults);
+});
+
+test('airport suggestions do not change submitted route text values', () => {
+  const formData = new FormData();
+
+  formData.set('from', 'Boston');
+  formData.set('via', 'Istanbul');
+  formData.set('to', 'Saint Petersburg');
+  formData.set('departureDate', '2026-08-01');
+  formData.set('dateRangeStart', '2026-08-01');
+  formData.set('dateRangeEnd', '2026-08-10');
+  formData.set('adults', '2');
+  formData.set('minLayover', '3');
+  formData.set('maxLayover', '12');
+
+  const query = searchForm.createSearchQueryFromFormData(formData);
+
+  assert.equal(query.from, 'Boston');
+  assert.equal(query.via, 'Istanbul');
+  assert.equal(query.to, 'Saint Petersburg');
 });
 
 test('escapes submitted values and validation messages before rendering', () => {

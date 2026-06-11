@@ -1,3 +1,5 @@
+import { airports } from '../data/airports.js';
+
 export const searchFormDefaults = {
   from: 'Boston',
   via: 'Istanbul',
@@ -31,7 +33,9 @@ function createErrorAttributes(fieldName, errors) {
   return `aria-invalid="true" aria-describedby="${fieldName}-error"`;
 }
 
-function createTextField({ id, label, value, errors }) {
+function createTextField({ id, label, value, errors, listId = '' }) {
+  const listAttribute = listId ? `list="${escapeHtml(listId)}"` : '';
+
   return `
     <label class="grid gap-2 text-sm font-medium text-slate-700" for="${id}">
       <span class="block min-h-5">${label}</span>
@@ -41,11 +45,23 @@ function createTextField({ id, label, value, errors }) {
         name="${id}"
         type="text"
         value="${escapeHtml(value)}"
+        ${listAttribute}
         ${createErrorAttributes(id, errors)}
       />
       ${createFieldError(id, errors)}
     </label>
   `;
+}
+
+function createAirportSuggestionsDatalist() {
+  const options = airports
+    .map(
+      (airport) =>
+        `<option value="${escapeHtml(airport.city)}" label="${escapeHtml(`${airport.iata} - ${airport.name}`)}"></option>`,
+    )
+    .join('');
+
+  return `<datalist id="airport-suggestions">${options}</datalist>`;
 }
 
 function createNumberField({ id, label, value, min, errors }) {
@@ -119,9 +135,28 @@ export function createSearchForm({ values = searchFormDefaults, errors = {}, isL
           ${createFieldError('route', errors)}
 
           <div class="grid gap-4 md:grid-cols-3">
-            ${createTextField({ id: 'from', label: 'From', value: values.from, errors })}
-            ${createTextField({ id: 'via', label: 'Via', value: values.via, errors })}
-            ${createTextField({ id: 'to', label: 'To', value: values.to, errors })}
+            ${createTextField({
+              id: 'from',
+              label: 'From',
+              value: values.from,
+              errors,
+              listId: 'airport-suggestions',
+            })}
+            ${createTextField({
+              id: 'via',
+              label: 'Via',
+              value: values.via,
+              errors,
+              listId: 'airport-suggestions',
+            })}
+            ${createTextField({
+              id: 'to',
+              label: 'To',
+              value: values.to,
+              errors,
+              listId: 'airport-suggestions',
+            })}
+            ${createAirportSuggestionsDatalist()}
           </div>
 
           <div class="grid gap-3">
