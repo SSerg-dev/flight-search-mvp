@@ -1,10 +1,12 @@
+import { searchAirports } from '../airportMetadataService.js';
+
 export function buildAmadeusProxyRequest(query) {
   return {
     provider: 'amadeus',
     route: {
-      from: query.from,
-      via: query.via,
-      to: query.to,
+      from: resolveRouteAirport(query.from, 'From'),
+      via: resolveRouteAirport(query.via, 'Via'),
+      to: resolveRouteAirport(query.to, 'To'),
     },
     departureDate: query.departureDate,
     dateRange: {
@@ -19,6 +21,19 @@ export function buildAmadeusProxyRequest(query) {
   };
 }
 
+function resolveRouteAirport(value, label) {
+  const airport = searchAirports(value, { limit: 1 })[0];
+
+  if (!airport) {
+    throw new Error(`Airport could not be resolved for ${label}.`);
+  }
+
+  return {
+    query: value,
+    iata: airport.iata,
+  };
+}
+
 export async function fetchAmadeusFlightOffers(query, { proxyUrl, fetchImpl = getDefaultFetch() } = {}) {
   if (!hasText(proxyUrl)) {
     throw new Error('Flight API proxy URL is required for Amadeus mode.');
@@ -28,6 +43,7 @@ export async function fetchAmadeusFlightOffers(query, { proxyUrl, fetchImpl = ge
     throw new Error('Flight API proxy client requires fetch.');
   }
 
+  const request = buildAmadeusProxyRequest(query);
   let response;
 
   try {
@@ -36,7 +52,7 @@ export async function fetchAmadeusFlightOffers(query, { proxyUrl, fetchImpl = ge
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(buildAmadeusProxyRequest(query)),
+      body: JSON.stringify(request),
     });
   } catch {
     throw new Error('Flight API network request failed.');

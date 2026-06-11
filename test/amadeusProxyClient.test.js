@@ -22,9 +22,18 @@ test('buildAmadeusProxyRequest maps search query without provider secrets', () =
   assert.deepEqual(buildAmadeusProxyRequest(query), {
     provider: 'amadeus',
     route: {
-      from: 'Boston',
-      via: 'Istanbul',
-      to: 'Saint Petersburg',
+      from: {
+        query: 'Boston',
+        iata: 'BOS',
+      },
+      via: {
+        query: 'Istanbul',
+        iata: 'IST',
+      },
+      to: {
+        query: 'Saint Petersburg',
+        iata: 'LED',
+      },
     },
     departureDate: '2026-08-01',
     dateRange: {
@@ -60,6 +69,48 @@ test('fetchAmadeusFlightOffers posts search payload to configured proxy', async 
   assert.equal(calls[0].init.method, 'POST');
   assert.equal(calls[0].init.headers['Content-Type'], 'application/json');
   assert.deepEqual(JSON.parse(calls[0].init.body), buildAmadeusProxyRequest(query));
+});
+
+test('buildAmadeusProxyRequest fails safely when a route airport cannot be resolved', () => {
+  assert.throws(
+    () => buildAmadeusProxyRequest({
+      ...query,
+      from: 'Unknown City',
+    }),
+    {
+      message: 'Airport could not be resolved for From.',
+    },
+  );
+});
+
+test('fetchAmadeusFlightOffers does not call proxy when route airport mapping fails', async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+
+    return {
+      ok: true,
+      json: async () => amadeusFlightOffersFixture,
+    };
+  };
+
+  await assert.rejects(
+    fetchAmadeusFlightOffers(
+      {
+        ...query,
+        to: 'Unknown City',
+      },
+      {
+        proxyUrl: 'https://example.com/api/flights',
+        fetchImpl,
+      },
+    ),
+    {
+      message: 'Airport could not be resolved for To.',
+    },
+  );
+
+  assert.deepEqual(calls, []);
 });
 
 test('fetchAmadeusFlightOffers requires a proxy URL', async () => {

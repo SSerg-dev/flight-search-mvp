@@ -106,6 +106,66 @@ test('searchFlightOffers returns normalized Amadeus offers through configured pr
   assert.equal(results[0].route.stopover.city, 'Istanbul');
 });
 
+test('searchFlightOffers sends resolved airport IATA codes in Amadeus proxy payload', async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+
+    return {
+      ok: true,
+      json: async () => amadeusFlightOffersFixture,
+    };
+  };
+
+  await searchFlightOffers(baseQuery, {
+    fetchImpl,
+    env: {
+      VITE_FLIGHT_API_MODE: 'amadeus',
+      VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/flights',
+    },
+  });
+
+  const payload = JSON.parse(calls[0].init.body);
+
+  assert.deepEqual(payload.route, {
+    from: {
+      query: 'Boston',
+      iata: 'BOS',
+    },
+    via: {
+      query: 'Istanbul',
+      iata: 'IST',
+    },
+    to: {
+      query: 'Saint Petersburg',
+      iata: 'LED',
+    },
+  });
+});
+
+test('searchFlightOffers fails safely when Amadeus route airport mapping fails', async () => {
+  await assert.rejects(
+    searchFlightOffers(
+      {
+        ...baseQuery,
+        via: 'Unknown City',
+      },
+      {
+        fetchImpl: async () => {
+          throw new Error('fetch should not be called');
+        },
+        env: {
+          VITE_FLIGHT_API_MODE: 'amadeus',
+          VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/flights',
+        },
+      },
+    ),
+    {
+      message: 'Airport could not be resolved for Via.',
+    },
+  );
+});
+
 test('searchFlightOffers maps malformed Amadeus proxy responses to a safe service error', async () => {
   const fetchImpl = async () => ({
     ok: true,

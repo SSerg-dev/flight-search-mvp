@@ -23,8 +23,8 @@ with manual orchestration.
 ```text
 MVP v1: COMPLETED
 MVP v2: CODE COMPLETE
-MVP v3: WAVE 7 COMPLETE
-NEXT_STEP: WAVE 8 SEARCH FORM AIRPORT MAPPING
+MVP v3: WAVE 8 COMPLETE
+NEXT_STEP: WAVE 9 AIRPORT SUGGESTIONS OR BACKEND PROXY
 ```
 
 ---
@@ -465,11 +465,42 @@ Goal:
 
 Map user route text to airport metadata before real Amadeus proxy requests.
 
-Status:
+Tasks:
+
+- resolve `from` route text to airport metadata
+- resolve `via` route text to airport metadata
+- resolve `to` route text to airport metadata
+- include original route query labels in proxy payload
+- include resolved IATA codes in proxy payload
+- fail safely when a route point cannot be resolved
+- avoid proxy fetch when route mapping fails
+- preserve mock mode behavior
+- add proxy request tests
+- add service-level Amadeus payload tests
+
+Exit Criteria:
 
 ```text
-NEXT
+SEARCH_FORM_AIRPORT_MAPPING_READY
+AMADEUS_PROXY_IATA_PAYLOAD_READY
+MOCK_MODE_UNCHANGED
 ```
+
+Result:
+
+```text
+WAVE_8 = COMPLETED
+SEARCH_FORM_AIRPORT_MAPPING_READY
+AMADEUS_PROXY_IATA_PAYLOAD_READY
+MOCK_MODE_UNCHANGED
+```
+
+Artifacts:
+
+- `src/services/proxy/amadeusProxyClient.js`
+- `test/amadeusProxyClient.test.js`
+- `test/flightService.test.js`
+- `.ai/workflows/03-08-wave-8-exit-checklist-v3.md`
 
 ---
 
@@ -485,6 +516,7 @@ Checklist:
 - adapter selection works
 - response normalization works
 - airport metadata lookup works
+- Amadeus proxy request includes resolved IATA codes
 - real API request flow works with mocked responses
 - loading state works
 - error state works
@@ -499,11 +531,11 @@ Checklist:
 Result:
 
 ```text
-RED TEST v3 = WAVE 7 COMPLETE
+RED TEST v3 = WAVE 8 COMPLETE
 
-Flight Search MVP v3 = READY_FOR_SEARCH_FORM_AIRPORT_MAPPING
+Flight Search MVP v3 = READY_FOR_AIRPORT_SUGGESTIONS_OR_BACKEND_PROXY
 
-READY_FOR_WAVE_8
+READY_FOR_WAVE_9
 ```
 
 ---
