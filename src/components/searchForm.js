@@ -122,7 +122,7 @@ export function createSearchForm({ values = searchFormDefaults, errors = {}, isL
   const loadingAttributes = isLoading ? 'disabled aria-busy="true"' : 'aria-busy="false"';
 
   return `
-    <main class="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+    <main class="bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <section class="mx-auto max-w-5xl">
         <div class="mb-5 sm:mb-6">
           <h1 class="text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">

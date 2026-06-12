@@ -150,6 +150,12 @@ test('search form includes responsive spacing and full-width mobile submit actio
   assert.match(markup, /w-full[\s\S]*sm:w-auto/);
 });
 
+test('search form does not reserve a full viewport before results', () => {
+  const markup = searchForm.createSearchForm();
+
+  assert.doesNotMatch(markup, /min-h-screen/);
+});
+
 test('search form disables submit button while loading', () => {
   const markup = searchForm.createSearchForm({ isLoading: true });
 

@@ -20,7 +20,25 @@ test('result card renders flight route, airline, price, dates, layover, and dura
   assert.match(markup, new RegExp(mockFlights[0].route.departureDate));
   assert.match(markup, new RegExp(mockFlights[0].duration.layoverDisplay));
   assert.match(markup, new RegExp(mockFlights[0].duration.display));
+  assert.match(markup, /Boston Depart 2026-08-01 at 21:35 -&gt; Istanbul Arrive 2026-08-02 at 14:25/);
+  assert.match(markup, /Istanbul Depart 2026-08-02 at 18:55 -&gt; Saint Petersburg Arrive 2026-08-03 at 02:15/);
   assert.match(markup, /2 adults/);
+});
+
+test('result card hides misleading zero-hour layover durations', () => {
+  const markup = createResultCard({
+    ...realisticNormalizedFlightOffer,
+    duration: {
+      ...realisticNormalizedFlightOffer.duration,
+      display: '3h 20m',
+      layoverMinutes: 0,
+      layoverDisplay: '0h layover',
+    },
+  });
+
+  assert.match(markup, /Stay in Istanbul\s*· 3h 20m/);
+  assert.doesNotMatch(markup, /0h layover/);
+  assert.doesNotMatch(markup, /3h 20m total/);
 });
 
 test('results list renders matching result cards', () => {

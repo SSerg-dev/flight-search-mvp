@@ -5,7 +5,7 @@ export function createResultCard(flight) {
     ? flight.airline.flightNumbers.join(' / ')
     : 'Flight details pending';
   const priceDisplay = hasText(flight.price?.display) ? flight.price.display : 'Price unavailable';
-  const timingDisplay = createTimingDisplay(flight, firstSegment, lastSegment);
+  const segmentTimingDisplay = createSegmentTimingDisplay(flight);
   const durationDisplay = createDurationDisplay(flight);
 
   return `
@@ -20,7 +20,7 @@ export function createResultCard(flight) {
           <p class="font-medium text-slate-900">
             ${escapeHtml(flight.route?.origin?.city)} to ${escapeHtml(flight.route?.stopover?.city)} to ${escapeHtml(flight.route?.destination?.city)}
           </p>
-          ${timingDisplay}
+          ${segmentTimingDisplay}
           ${durationDisplay}
         </div>
       </div>
@@ -35,30 +35,70 @@ export function createResultCard(flight) {
   `;
 }
 
-function createTimingDisplay(flight, firstSegment, lastSegment) {
-  if (!hasText(flight.route?.departureDate) || !hasText(firstSegment.departure) || !hasText(lastSegment.arrival)) {
+function createSegmentTimingDisplay(flight) {
+  if (!Array.isArray(flight.segments) || flight.segments.length === 0) {
     return '<p>Schedule details pending</p>';
   }
 
+  const segmentLines = flight.segments.map(createSegmentTimingLine).join('');
+
+  if (!hasText(segmentLines)) {
+    return '<p>Schedule details pending</p>';
+  }
+
+  return `<div class="grid gap-1">${segmentLines}</div>`;
+}
+
+function createSegmentTimingLine(segment) {
+  if (
+    !hasText(segment.from) ||
+    !hasText(segment.to) ||
+    !hasText(segment.departure) ||
+    !hasText(segment.arrival)
+  ) {
+    return '';
+  }
+
   return `
-          <p>
-            Depart ${escapeHtml(flight.route.departureDate)} at ${escapeHtml(getTime(firstSegment.departure))}
-            · Arrive ${escapeHtml(getDate(lastSegment.arrival))} at ${escapeHtml(getTime(lastSegment.arrival))}
-          </p>
+            <p>${escapeHtml(segment.from)} Depart ${escapeHtml(getDate(segment.departure))} at ${escapeHtml(getTime(segment.departure))} -&gt; ${escapeHtml(segment.to)} Arrive ${escapeHtml(getDate(segment.arrival))} at ${escapeHtml(getTime(segment.arrival))}</p>
   `;
 }
 
 function createDurationDisplay(flight) {
-  if (!hasText(flight.duration?.layoverDisplay) || !hasText(flight.duration?.display)) {
+  if (!hasText(flight.duration?.display)) {
     return '<p>Duration details pending</p>';
   }
 
-  return `
+  if (flight.duration?.scheduleAdjusted) {
+    return `
           <p>
-            ${escapeHtml(flight.duration.layoverDisplay)} in ${escapeHtml(flight.route?.stopover?.city)}
-            · ${escapeHtml(flight.duration.display)} total
+            Stay in ${escapeHtml(flight.route?.stopover?.city)}
+            · ${escapeHtml(getStayDisplay(flight))}
           </p>
   `;
+  }
+
+  const layoverDisplay =
+    Number(flight.duration?.layoverMinutes) > 0 && hasText(flight.duration?.layoverDisplay)
+      ? `${flight.duration.layoverDisplay} in ${flight.route?.stopover?.city}`
+      : `Stay in ${flight.route?.stopover?.city}`;
+
+  const totalSuffix = Number(flight.duration?.layoverMinutes) > 0 ? ' total' : '';
+
+  return `
+          <p>
+            ${escapeHtml(layoverDisplay)}
+            · ${escapeHtml(flight.duration.display)}${totalSuffix}
+          </p>
+  `;
+}
+
+function getStayDisplay(flight) {
+  if (!hasText(flight.duration?.layoverDisplay)) {
+    return flight.duration.display;
+  }
+
+  return String(flight.duration.layoverDisplay).replace(/\s+layover$/, '');
 }
 
 function getDate(dateTime) {

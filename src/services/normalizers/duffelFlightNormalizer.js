@@ -5,12 +5,13 @@ export function normalizeDuffelOfferRequest(response, { query } = {}) {
 }
 
 function normalizeOffer(offer, query = {}) {
-  const segments = getOfferSegments(offer);
+  const rawSegments = getOfferSegments(offer);
 
-  if (!Array.isArray(segments) || segments.length < 2) {
+  if (!Array.isArray(rawSegments) || rawSegments.length < 2) {
     throw new Error('Duffel offer is missing itinerary segments.');
   }
 
+  const { segments, scheduleAdjusted } = getChronologicalSegments(rawSegments, query);
   const firstSegment = segments[0];
   const lastSegment = segments[segments.length - 1];
   const stopoverSegment = segments[1];
@@ -38,7 +39,8 @@ function normalizeOffer(offer, query = {}) {
       totalMinutes,
       display: formatDuration(totalMinutes),
       layoverMinutes,
-      layoverDisplay: `${formatHours(layoverMinutes)} layover`,
+      layoverDisplay: `${formatDuration(layoverMinutes)} layover`,
+      scheduleAdjusted,
     },
     availability: {
       seats: passengerCount,
@@ -53,6 +55,37 @@ function getOfferSegments(offer) {
   }
 
   return offer.slices.flatMap((slice) => (Array.isArray(slice?.segments) ? slice.segments : []));
+}
+
+function getChronologicalSegments(segments, query = {}) {
+  const adjustedSegments = segments.map((segment) => ({ ...segment }));
+  let scheduleAdjusted = false;
+
+  for (let index = 1; index < adjustedSegments.length; index += 1) {
+    const previousArrival = parseDateTime(adjustedSegments[index - 1].arriving_at);
+    const currentDeparture = parseDateTime(adjustedSegments[index].departing_at);
+
+    if (!previousArrival || !currentDeparture || currentDeparture >= previousArrival) {
+      continue;
+    }
+
+    const stayMinutes = getEstimatedStayMinutes(segments, query);
+    const flightMinutes = getSegmentDurationMinutes(adjustedSegments[index]);
+    const adjustedDeparture = addMinutes(previousArrival, stayMinutes);
+
+    adjustedSegments[index].departing_at = formatIsoDateTime(adjustedDeparture);
+
+    if (flightMinutes > 0) {
+      adjustedSegments[index].arriving_at = formatIsoDateTime(addMinutes(adjustedDeparture, flightMinutes));
+    }
+
+    scheduleAdjusted = true;
+  }
+
+  return {
+    segments: adjustedSegments,
+    scheduleAdjusted,
+  };
 }
 
 function normalizeSegment(segment) {
@@ -74,7 +107,11 @@ function getRoutePoint(place = {}, fallbackCity = '') {
 }
 
 function getFlightNumber(segment) {
-  return `${segment.marketing_carrier?.iata_code ?? ''}${segment.marketing_carrier_flight_number ?? ''}`;
+  return `${segment.marketing_carrier?.iata_code ?? ''}${formatFlightNumber(segment.marketing_carrier_flight_number)}`;
+}
+
+function formatFlightNumber(value) {
+  return String(value ?? '').replace(/^0+(?=\d)/, '');
 }
 
 function getPrice(offer, passengerCount) {
@@ -100,25 +137,25 @@ function getPassengerCount(offer, query = {}) {
 }
 
 function getLayoverMinutes(firstSegment, secondSegment) {
-  const firstArrival = Date.parse(firstSegment.arriving_at ?? '');
-  const secondDeparture = Date.parse(secondSegment.departing_at ?? '');
+  const firstArrival = parseDateTime(firstSegment.arriving_at);
+  const secondDeparture = parseDateTime(secondSegment.departing_at);
 
-  if (!Number.isFinite(firstArrival) || !Number.isFinite(secondDeparture)) {
+  if (!firstArrival || !secondDeparture) {
     return 0;
   }
 
-  return Math.max(0, Math.round((secondDeparture - firstArrival) / 60000));
+  return Math.max(0, Math.round((secondDeparture.getTime() - firstArrival.getTime()) / 60000));
 }
 
 function getTotalMinutes(firstSegment, lastSegment) {
-  const departure = Date.parse(firstSegment.departing_at ?? '');
-  const arrival = Date.parse(lastSegment.arriving_at ?? '');
+  const departure = parseDateTime(firstSegment.departing_at);
+  const arrival = parseDateTime(lastSegment.arriving_at);
 
-  if (!Number.isFinite(departure) || !Number.isFinite(arrival)) {
+  if (!departure || !arrival) {
     return 0;
   }
 
-  return Math.max(0, Math.round((arrival - departure) / 60000));
+  return Math.max(0, Math.round((arrival.getTime() - departure.getTime()) / 60000));
 }
 
 function formatDuration(totalMinutes) {
@@ -134,20 +171,6 @@ function formatDuration(totalMinutes) {
   }
 
   return `${hours}h ${minutes}m`;
-}
-
-function formatHours(totalMinutes) {
-  if (!Number.isFinite(totalMinutes) || totalMinutes <= 0) {
-    return '0h';
-  }
-
-  const hours = totalMinutes / 60;
-
-  if (Number.isInteger(hours)) {
-    return `${hours}h`;
-  }
-
-  return `${Number(hours.toFixed(2))}h`;
 }
 
 function formatPrice(amount, currency) {
@@ -166,6 +189,83 @@ function formatDateTime(value) {
 
 function getDate(value) {
   return String(value ?? '').split('T')[0] ?? '';
+}
+
+function getEstimatedStayMinutes(segments, query = {}) {
+  const originalTotalMinutes = getMinutesBetween(segments[0]?.departing_at, segments[segments.length - 1]?.arriving_at);
+
+  if (originalTotalMinutes > 0) {
+    return originalTotalMinutes;
+  }
+
+  const minimumLayoverHours = Number(query.minLayover);
+
+  if (Number.isFinite(minimumLayoverHours) && minimumLayoverHours > 0) {
+    return Math.round(minimumLayoverHours * 60);
+  }
+
+  return 0;
+}
+
+function getSegmentDurationMinutes(segment) {
+  const durationMinutes = parseIsoDuration(segment.duration);
+
+  if (durationMinutes > 0) {
+    return durationMinutes;
+  }
+
+  return getMinutesBetween(segment.departing_at, segment.arriving_at);
+}
+
+function getMinutesBetween(startValue, endValue) {
+  const start = parseDateTime(startValue);
+  const end = parseDateTime(endValue);
+
+  if (!start || !end) {
+    return 0;
+  }
+
+  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000));
+}
+
+function parseIsoDuration(value) {
+  const match = /^PT(?:(\d+)H)?(?:(\d+)M)?$/.exec(String(value ?? ''));
+
+  if (!match) {
+    return 0;
+  }
+
+  return Number(match[1] ?? 0) * 60 + Number(match[2] ?? 0);
+}
+
+function parseDateTime(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(String(value ?? ''));
+
+  if (!match) {
+    return undefined;
+  }
+
+  return new Date(
+    Date.UTC(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3]),
+      Number(match[4]),
+      Number(match[5]),
+    ),
+  );
+}
+
+function addMinutes(date, minutes) {
+  return new Date(date.getTime() + minutes * 60000);
+}
+
+function formatIsoDateTime(date) {
+  return `${date.getUTCFullYear()}-${padDatePart(date.getUTCMonth() + 1)}-${padDatePart(date.getUTCDate())}T${padDatePart(date.getUTCHours())}:${padDatePart(date.getUTCMinutes())}:00`;
+}
+
+function padDatePart(value) {
+  return String(value).padStart(2, '0');
 }
 
 function createFallbackId(firstSegment, lastSegment) {
