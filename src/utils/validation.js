@@ -13,10 +13,6 @@ export function validateSearchQuery(query) {
     errors.to = 'To is required.';
   }
 
-  if (!hasText(query?.departureDate)) {
-    errors.departureDate = 'Departure Date is required.';
-  }
-
   if (!hasText(query?.dateRange?.start) || !hasText(query?.dateRange?.end)) {
     errors.dateRange = 'Date Range is required.';
   }

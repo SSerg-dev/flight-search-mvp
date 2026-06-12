@@ -43,7 +43,7 @@ test('rejects empty required fields', () => {
   assert.equal(result.errors.from, 'From is required.');
   assert.equal(result.errors.via, 'Via is required.');
   assert.equal(result.errors.to, 'To is required.');
-  assert.equal(result.errors.departureDate, 'Departure Date is required.');
+  assert.equal(result.errors.departureDate, undefined);
   assert.equal(result.errors.dateRange, 'Date Range is required.');
   assert.equal(result.errors.adults, 'Adults is required.');
   assert.equal(result.errors.minLayover, 'Min Layover Hours is required.');

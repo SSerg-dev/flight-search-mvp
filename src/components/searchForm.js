@@ -100,13 +100,15 @@ function createDateField({ id, label, value, errors }) {
 }
 
 export function createSearchQueryFromFormData(formData) {
+  const dateRangeStart = String(formData.get('dateRangeStart') ?? '');
+
   return {
     from: String(formData.get('from') ?? '').trim(),
     via: String(formData.get('via') ?? '').trim(),
     to: String(formData.get('to') ?? '').trim(),
-    departureDate: String(formData.get('departureDate') ?? ''),
+    departureDate: dateRangeStart,
     dateRange: {
-      start: String(formData.get('dateRangeStart') ?? ''),
+      start: dateRangeStart,
       end: String(formData.get('dateRangeEnd') ?? ''),
     },
     adults: toOptionalNumber(formData.get('adults')),
@@ -161,22 +163,16 @@ export function createSearchForm({ values = searchFormDefaults, errors = {}, isL
 
           <div class="grid gap-3">
             <p class="text-sm font-medium text-slate-700">Date Range</p>
-            <div class="grid items-start gap-4 md:grid-cols-3">
-              ${createDateField({
-                id: 'departureDate',
-                label: 'Departure Date',
-                value: values.departureDate,
-                errors,
-              })}
+            <div class="grid items-start gap-4 md:grid-cols-2">
               ${createDateField({
                 id: 'dateRangeStart',
-                label: 'Start Date',
+                label: 'Departure Date Start',
                 value: values.dateRange.start,
                 errors,
               })}
               ${createDateField({
                 id: 'dateRangeEnd',
-                label: 'End Date',
+                label: 'Departure Date End',
                 value: values.dateRange.end,
                 errors,
               })}

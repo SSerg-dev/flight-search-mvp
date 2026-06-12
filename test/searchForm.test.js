@@ -23,8 +23,8 @@ test('search form renders all approved fields and the submit button', () => {
     'From',
     'Via',
     'To',
-    'Departure Date',
-    'Date Range',
+    'Departure Date Start',
+    'Departure Date End',
     'Adults',
     'Min Layover Hours',
     'Max Layover Hours',
@@ -36,7 +36,6 @@ test('search form renders all approved fields and the submit button', () => {
   assert.match(markup, /name="from"/);
   assert.match(markup, /name="via"/);
   assert.match(markup, /name="to"/);
-  assert.match(markup, /name="departureDate"/);
   assert.match(markup, /name="dateRangeStart"/);
   assert.match(markup, /name="dateRangeEnd"/);
   assert.match(markup, /name="adults"/);
@@ -84,7 +83,6 @@ test('creates the Wave 3 search query shape from submitted form data', () => {
   formData.set('from', 'Boston');
   formData.set('via', 'Istanbul');
   formData.set('to', 'Saint Petersburg');
-  formData.set('departureDate', '2026-08-01');
   formData.set('dateRangeStart', '2026-08-01');
   formData.set('dateRangeEnd', '2026-08-10');
   formData.set('adults', '2');
@@ -100,7 +98,6 @@ test('airport suggestions do not change submitted route text values', () => {
   formData.set('from', 'Boston');
   formData.set('via', 'Istanbul');
   formData.set('to', 'Saint Petersburg');
-  formData.set('departureDate', '2026-08-01');
   formData.set('dateRangeStart', '2026-08-01');
   formData.set('dateRangeEnd', '2026-08-10');
   formData.set('adults', '2');

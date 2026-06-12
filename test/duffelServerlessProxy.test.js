@@ -87,7 +87,7 @@ test('Duffel serverless proxy creates an offer request with mandatory stopover s
 
   const response = await createDuffelProxyHandler({ env, fetchImpl })({
     method: 'POST',
-    body: JSON.stringify(proxyPayload),
+    body: JSON.stringify(createProxyPayloadForDate('2026-08-01')),
   });
 
   assert.equal(response.status, 200);
@@ -123,6 +123,44 @@ test('Duffel serverless proxy creates an offer request with mandatory stopover s
       cabin_class: 'economy',
     },
   });
+});
+
+test('Duffel serverless proxy searches every date in the requested departure range', async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+    const departureDate = JSON.parse(init.body).data.slices[0].departure_date;
+
+    return {
+      ok: true,
+      json: async () => createDuffelResponseForDate(departureDate),
+    };
+  };
+
+  const response = await createDuffelProxyHandler({ env, fetchImpl })({
+    method: 'POST',
+    body: JSON.stringify({
+      ...proxyPayload,
+      dateRange: {
+        start: '2026-08-01',
+        end: '2026-08-03',
+      },
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    calls.map((call) => JSON.parse(call.init.body).data.slices.map((slice) => slice.departure_date)),
+    [
+      ['2026-08-01', '2026-08-01'],
+      ['2026-08-02', '2026-08-02'],
+      ['2026-08-03', '2026-08-03'],
+    ],
+  );
+  assert.deepEqual(
+    JSON.parse(response.body).data.offers.map((offer) => offer.id),
+    ['off_2026-08-01', 'off_2026-08-02', 'off_2026-08-03'],
+  );
 });
 
 test('Duffel serverless proxy validates request payload before calling Duffel', async () => {
@@ -205,7 +243,7 @@ test('default Duffel serverless export writes JSON to a response object', async 
     await duffelProxyHandler(
       {
         method: 'POST',
-        body: proxyPayload,
+        body: createProxyPayloadForDate('2026-08-01'),
       },
       {
         status(status) {
@@ -234,4 +272,27 @@ function restoreEnvValue(name, value) {
   }
 
   process.env[name] = value;
+}
+
+function createDuffelResponseForDate(departureDate) {
+  return {
+    data: {
+      ...duffelOfferRequestFixture.data,
+      offers: duffelOfferRequestFixture.data.offers.map((offer) => ({
+        ...offer,
+        id: `off_${departureDate}`,
+      })),
+    },
+  };
+}
+
+function createProxyPayloadForDate(departureDate) {
+  return {
+    ...proxyPayload,
+    departureDate,
+    dateRange: {
+      start: departureDate,
+      end: departureDate,
+    },
+  };
 }

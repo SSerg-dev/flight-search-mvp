@@ -31,7 +31,7 @@ export function createDuffelProxyHandler({ env = {}, fetchImpl = globalThis.fetc
     }
 
     try {
-      const offerRequest = await requestDuffelOfferRequest({
+      const offerRequest = await requestDuffelOfferRequests({
         apiBaseUrl: getApiBaseUrl(env),
         payload,
         token: env.DUFFEL_ACCESS_TOKEN,
@@ -60,6 +60,26 @@ export default async function duffelProxyHandler(request, response) {
   return result;
 }
 
+async function requestDuffelOfferRequests({ apiBaseUrl, payload, token, fetchImpl }) {
+  const offerRequests = [];
+
+  for (const departureDate of getDepartureDates(payload)) {
+    offerRequests.push(
+      await requestDuffelOfferRequest({
+        apiBaseUrl,
+        payload: {
+          ...payload,
+          departureDate,
+        },
+        token,
+        fetchImpl,
+      }),
+    );
+  }
+
+  return combineDuffelOfferRequests(offerRequests);
+}
+
 async function requestDuffelOfferRequest({ apiBaseUrl, payload, token, fetchImpl }) {
   const response = await fetchImpl(`${apiBaseUrl}/air/offer_requests?return_offers=true`, {
     method: 'POST',
@@ -76,6 +96,20 @@ async function requestDuffelOfferRequest({ apiBaseUrl, payload, token, fetchImpl
   }
 
   return response.json();
+}
+
+function combineDuffelOfferRequests(offerRequests) {
+  const [firstOfferRequest = { data: {} }] = offerRequests;
+
+  return {
+    ...firstOfferRequest,
+    data: {
+      ...firstOfferRequest.data,
+      offers: offerRequests.flatMap((offerRequest) =>
+        Array.isArray(offerRequest?.data?.offers) ? offerRequest.data.offers : [],
+      ),
+    },
+  };
 }
 
 function buildDuffelOfferRequestBody(payload) {
@@ -99,6 +133,43 @@ function buildDuffelOfferRequestBody(payload) {
       cabin_class: 'economy',
     },
   };
+}
+
+function getDepartureDates(payload) {
+  const start = parseDateOnly(payload.dateRange?.start);
+  const end = parseDateOnly(payload.dateRange?.end);
+
+  if (!start || !end || start > end) {
+    return [payload.departureDate];
+  }
+
+  const dates = [];
+  const cursor = new Date(start);
+
+  while (cursor <= end) {
+    dates.push(formatDateOnly(cursor));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+
+  return dates;
+}
+
+function parseDateOnly(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value ?? ''))) {
+    return undefined;
+  }
+
+  const date = new Date(`${value}T00:00:00Z`);
+
+  if (Number.isNaN(date.getTime())) {
+    return undefined;
+  }
+
+  return date;
+}
+
+function formatDateOnly(date) {
+  return date.toISOString().slice(0, 10);
 }
 
 function isValidProxyPayload(payload) {

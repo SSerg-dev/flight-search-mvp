@@ -75,6 +75,38 @@ test('normalizes Duffel offer requests into the app flight shape', () => {
   });
 });
 
+test('normalizes Duffel offers split across mandatory stopover slices', () => {
+  const firstSegment = duffelOfferRequestFixture.data.offers[0].slices[0].segments[0];
+  const secondSegment = duffelOfferRequestFixture.data.offers[0].slices[0].segments[1];
+  const response = {
+    data: {
+      offers: [
+        {
+          ...duffelOfferRequestFixture.data.offers[0],
+          slices: [
+            {
+              segments: [firstSegment],
+            },
+            {
+              segments: [secondSegment],
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  const results = normalizeDuffelOfferRequest(response, { query });
+
+  assert.equal(results.length, 1);
+  assert.deepEqual(
+    results[0].segments.map((segment) => segment.flightNumber),
+    ['TK82', 'TK401'],
+  );
+  assert.equal(results[0].route.stopover.code, 'IST');
+  assert.equal(results[0].route.destination.code, 'LED');
+});
+
 test('throws a controlled error for malformed Duffel responses', () => {
   assert.throws(() => normalizeDuffelOfferRequest({ data: { offers: [{ id: 'bad-offer' }] } }, { query }), {
     message: 'Duffel offer is missing itinerary segments.',

@@ -5,7 +5,7 @@ export function normalizeDuffelOfferRequest(response, { query } = {}) {
 }
 
 function normalizeOffer(offer, query = {}) {
-  const segments = offer?.slices?.[0]?.segments;
+  const segments = getOfferSegments(offer);
 
   if (!Array.isArray(segments) || segments.length < 2) {
     throw new Error('Duffel offer is missing itinerary segments.');
@@ -45,6 +45,14 @@ function normalizeOffer(offer, query = {}) {
       canBookAdults: passengerCount >= Number(query.adults ?? 1),
     },
   };
+}
+
+function getOfferSegments(offer) {
+  if (!Array.isArray(offer?.slices)) {
+    return [];
+  }
+
+  return offer.slices.flatMap((slice) => (Array.isArray(slice?.segments) ? slice.segments : []));
 }
 
 function normalizeSegment(segment) {
