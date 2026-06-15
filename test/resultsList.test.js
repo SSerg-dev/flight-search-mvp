@@ -52,6 +52,40 @@ test('result card appends the weekday name only to the Boston departure date', (
   assert.match(markup, /Istanbul Depart 2026-08-10 at 21:45 -&gt; Saint Petersburg Arrive 2026-08-11 at 01:30/);
 });
 
+test('result card marks daytime departures with a sun badge', () => {
+  const markup = createResultCard({
+    ...mockFlights[0],
+    segments: [
+      {
+        ...mockFlights[0].segments[0],
+        departure: '2026-08-01 10:30',
+      },
+      mockFlights[0].segments[1],
+    ],
+  });
+
+  assert.match(markup, /aria-label="Daytime departure"/);
+  assert.match(markup, /Sun/);
+  assert.match(markup, /Day departure/);
+});
+
+test('result card marks night departures with a night badge', () => {
+  const markup = createResultCard({
+    ...mockFlights[0],
+    segments: [
+      {
+        ...mockFlights[0].segments[0],
+        departure: '2026-08-01 21:35',
+      },
+      mockFlights[0].segments[1],
+    ],
+  });
+
+  assert.match(markup, /aria-label="Night departure"/);
+  assert.match(markup, /Moon/);
+  assert.match(markup, /Night departure/);
+});
+
 test('result card hides misleading zero-hour layover durations', () => {
   const markup = createResultCard({
     ...realisticNormalizedFlightOffer,

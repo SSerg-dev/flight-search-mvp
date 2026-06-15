@@ -7,6 +7,7 @@ export function createResultCard(flight) {
   const priceDisplay = hasText(flight.price?.display) ? flight.price.display : 'Price unavailable';
   const segmentTimingDisplay = createSegmentTimingDisplay(flight);
   const durationDisplay = createDurationDisplay(flight);
+  const departurePeriodBadge = createDeparturePeriodBadge(firstSegment.departure);
 
   return `
     <article class="grid gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm transition hover:border-sky-300 hover:shadow-md sm:grid-cols-[1fr_auto] sm:items-start sm:p-5">
@@ -20,6 +21,7 @@ export function createResultCard(flight) {
           <p class="font-medium text-slate-900">
             ${escapeHtml(flight.route?.origin?.city)} to ${escapeHtml(flight.route?.stopover?.city)} to ${escapeHtml(flight.route?.destination?.city)}
           </p>
+          ${departurePeriodBadge}
           ${segmentTimingDisplay}
           ${durationDisplay}
         </div>
@@ -33,6 +35,42 @@ export function createResultCard(flight) {
       </div>
     </article>
   `;
+}
+
+function createDeparturePeriodBadge(dateTime) {
+  const period = getDeparturePeriod(dateTime);
+
+  if (!period) {
+    return '';
+  }
+
+  const badgeClass =
+    period === 'day'
+      ? 'border-amber-200 bg-amber-50 text-amber-800'
+      : 'border-indigo-200 bg-indigo-50 text-indigo-800';
+  const label = period === 'day' ? 'Daytime departure' : 'Night departure';
+  const icon = period === 'day' ? '☀' : '☾';
+  const iconName = period === 'day' ? 'Sun' : 'Moon';
+  const text = period === 'day' ? 'Day departure' : 'Night departure';
+
+  return `
+          <p>
+            <span aria-label="${label}" class="inline-flex w-fit items-center gap-1 rounded border px-2 py-1 text-xs font-semibold ${badgeClass}">
+              <span aria-hidden="true">${icon}</span><span class="sr-only">${iconName}</span>${text}
+            </span>
+          </p>
+  `;
+}
+
+function getDeparturePeriod(dateTime) {
+  const time = getTime(dateTime);
+  const hour = Number(time.split(':')[0]);
+
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) {
+    return '';
+  }
+
+  return hour >= 6 && hour < 18 ? 'day' : 'night';
 }
 
 function createSegmentTimingDisplay(flight) {
