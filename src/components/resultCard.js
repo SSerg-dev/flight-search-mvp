@@ -77,7 +77,7 @@ function createDurationDisplay(flight) {
             Stay in ${escapeHtml(flight.route?.stopover?.city)}
           </p>
           <p class="font-semibold text-slate-900">
-            · ${escapeHtml(getStayDisplay(flight))}
+            ${escapeHtml(getStayDisplay(flight))}
           </p>
   `;
   }
@@ -94,7 +94,7 @@ function createDurationDisplay(flight) {
             ${escapeHtml(layoverDisplay)}
           </p>
           <p class="font-semibold text-slate-900">
-            · ${escapeHtml(flight.duration.display)}${totalSuffix}
+            ${escapeHtml(flight.duration.display)}${totalSuffix}
           </p>
   `;
 }

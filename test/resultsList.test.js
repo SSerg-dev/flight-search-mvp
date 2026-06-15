@@ -64,7 +64,7 @@ test('result card hides misleading zero-hour layover durations', () => {
   });
 
   assert.match(markup, /<p>\s*Stay in Istanbul\s*<\/p>/);
-  assert.match(markup, /<p class="font-semibold text-slate-900">\s*· 3h 20m\s*<\/p>/);
+  assert.match(markup, /<p class="font-semibold text-slate-900">\s*3h 20m\s*<\/p>/);
   assert.doesNotMatch(markup, /0h layover/);
   assert.doesNotMatch(markup, /3h 20m total/);
 });
@@ -73,7 +73,7 @@ test('result card renders total duration as a separate bold line below the layov
   const markup = createResultCard(mockFlights[0]);
 
   assert.match(markup, /<p>\s*4\.5h layover in Istanbul\s*<\/p>/);
-  assert.match(markup, /<p class="font-semibold text-slate-900">\s*· 21h 40m total\s*<\/p>/);
+  assert.match(markup, /<p class="font-semibold text-slate-900">\s*21h 40m total\s*<\/p>/);
 });
 
 test('results list renders matching result cards', () => {
