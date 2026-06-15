@@ -1,6 +1,7 @@
 import { airports } from '../data/airports.js';
 
 export const searchFormDefaults = {
+  tripType: 'oneWay',
   from: 'Boston',
   via: 'Istanbul',
   to: 'Saint Petersburg',
@@ -8,6 +9,10 @@ export const searchFormDefaults = {
   dateRange: {
     start: '2026-08-01',
     end: '2026-08-10',
+  },
+  returnDateRange: {
+    start: '',
+    end: '',
   },
   adults: 2,
   minLayover: 3,
@@ -101,8 +106,10 @@ function createDateField({ id, label, value, errors }) {
 
 export function createSearchQueryFromFormData(formData) {
   const dateRangeStart = String(formData.get('dateRangeStart') ?? '');
+  const tripType = String(formData.get('tripType') ?? 'oneWay');
 
   return {
+    tripType,
     from: String(formData.get('from') ?? '').trim(),
     via: String(formData.get('via') ?? '').trim(),
     to: String(formData.get('to') ?? '').trim(),
@@ -110,6 +117,10 @@ export function createSearchQueryFromFormData(formData) {
     dateRange: {
       start: dateRangeStart,
       end: String(formData.get('dateRangeEnd') ?? ''),
+    },
+    returnDateRange: {
+      start: String(formData.get('returnDateRangeStart') ?? ''),
+      end: String(formData.get('returnDateRangeEnd') ?? ''),
     },
     adults: toOptionalNumber(formData.get('adults')),
     minLayover: toOptionalNumber(formData.get('minLayover')),
@@ -135,6 +146,8 @@ export function createSearchForm({ values = searchFormDefaults, errors = {}, isL
 
         <form class="grid gap-5 rounded border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:gap-6" novalidate>
           ${createFieldError('route', errors)}
+
+          ${createTripTypeControl(values.tripType)}
 
           <div class="grid gap-4 md:grid-cols-3">
             ${createTextField({
@@ -180,6 +193,8 @@ export function createSearchForm({ values = searchFormDefaults, errors = {}, isL
             ${createFieldError('dateRange', errors)}
           </div>
 
+          ${createReturnDateRangeFields(values, errors)}
+
           <div class="grid gap-4 md:grid-cols-3">
             ${createNumberField({
               id: 'adults',
@@ -217,6 +232,72 @@ export function createSearchForm({ values = searchFormDefaults, errors = {}, isL
         </form>
       </section>
     </main>
+  `;
+}
+
+function createTripTypeControl(tripType) {
+  const selectedTripType = tripType === 'roundTrip' ? 'roundTrip' : 'oneWay';
+
+  return `
+    <fieldset class="grid gap-2">
+      <legend class="text-sm font-medium text-slate-700">Trip Type</legend>
+      <div class="grid gap-2 sm:flex">
+        ${createTripTypeOption({
+          value: 'oneWay',
+          label: 'One-way',
+          selectedTripType,
+        })}
+        ${createTripTypeOption({
+          value: 'roundTrip',
+          label: 'Round-trip',
+          selectedTripType,
+        })}
+      </div>
+    </fieldset>
+  `;
+}
+
+function createTripTypeOption({ value, label, selectedTripType }) {
+  const checkedAttribute = value === selectedTripType ? ' checked' : '';
+
+  return `
+    <label class="flex h-11 items-center gap-2 rounded border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
+      <input
+        class="h-4 w-4 text-sky-600"
+        type="radio"
+        name="tripType"
+        value="${value}"
+        ${checkedAttribute}
+      />
+      <span>${label}</span>
+    </label>
+  `;
+}
+
+function createReturnDateRangeFields(values, errors) {
+  if (values.tripType !== 'roundTrip') {
+    return '';
+  }
+
+  return `
+    <div class="grid gap-3">
+      <p class="text-sm font-medium text-slate-700">Return Date Range</p>
+      <div class="grid items-start gap-4 md:grid-cols-2">
+        ${createDateField({
+          id: 'returnDateRangeStart',
+          label: 'Return Date Start',
+          value: values.returnDateRange?.start ?? '',
+          errors,
+        })}
+        ${createDateField({
+          id: 'returnDateRangeEnd',
+          label: 'Return Date End',
+          value: values.returnDateRange?.end ?? '',
+          errors,
+        })}
+      </div>
+      ${createFieldError('returnDateRange', errors)}
+    </div>
   `;
 }
 

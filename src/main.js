@@ -1,9 +1,9 @@
 import './styles/input.css';
 import { createSearchForm, createSearchQueryFromFormData, searchFormDefaults } from './components/searchForm.js';
-import { createResultsList } from './components/resultsList.js';
+import { createSearchResultsMarkup } from './components/searchResults.js';
 import { createSearchStatus } from './components/searchStatus.js';
 import { searchFlightOffers } from './services/flightService.js';
-import { sortFlights } from './utils/sortFlights.js';
+import { getServiceErrorMessage } from './utils/serviceErrorMessage.js';
 import { validateSearchQuery } from './utils/validation.js';
 
 const app = document.querySelector('#app');
@@ -31,9 +31,19 @@ function renderApp() {
       isLoading: appState.isLoading,
       serviceError: appState.serviceError,
     }) +
-    createResultsMarkup(appState.results, appState.sortBy, appState.lastQuery);
-  app.querySelector('form').addEventListener('submit', handleSearchSubmit);
-  app.querySelector('#sortBy')?.addEventListener('change', handleSortChange);
+    createSearchResultsMarkup(appState.results, {
+      sortBy: appState.sortBy,
+      query: appState.lastQuery,
+    });
+  const form = app.querySelector('form');
+
+  form.addEventListener('submit', handleSearchSubmit);
+  form.querySelectorAll('input[name="tripType"]').forEach((input) => {
+    input.addEventListener('change', handleTripTypeChange);
+  });
+  app.querySelectorAll('select[name="sortBy"]').forEach((select) => {
+    select.addEventListener('change', handleSortChange);
+  });
 }
 
 async function handleSearchSubmit(event) {
@@ -64,9 +74,9 @@ async function handleSearchSubmit(event) {
 
   try {
     appState.results = await searchFlightOffers(query);
-  } catch {
+  } catch (error) {
     appState.results = undefined;
-    appState.serviceError = 'We could not load flight results. Please try again.';
+    appState.serviceError = getServiceErrorMessage(error);
   } finally {
     appState.isLoading = false;
     renderApp();
@@ -78,10 +88,13 @@ function handleSortChange(event) {
   renderApp();
 }
 
-function createResultsMarkup(results, sortBy, query) {
-  if (!Array.isArray(results)) {
-    return '';
-  }
+function handleTripTypeChange(event) {
+  const query = createSearchQueryFromFormData(new FormData(event.currentTarget.form));
 
-  return createResultsList(sortFlights(results, sortBy), { sortBy, query });
+  appState.values = query;
+  appState.errors = {};
+  appState.results = undefined;
+  appState.lastQuery = undefined;
+  appState.serviceError = '';
+  renderApp();
 }

@@ -5,15 +5,22 @@ import * as searchForm from '../src/components/searchForm.js';
 
 test('search form exposes the approved Wave 2 data model fields', () => {
   assert.deepEqual(Object.keys(searchForm.searchFormDefaults ?? {}), [
+    'tripType',
     'from',
     'via',
     'to',
     'departureDate',
     'dateRange',
+    'returnDateRange',
     'adults',
     'minLayover',
     'maxLayover',
   ]);
+  assert.equal(searchForm.searchFormDefaults.tripType, 'oneWay');
+  assert.deepEqual(searchForm.searchFormDefaults.returnDateRange, {
+    start: '',
+    end: '',
+  });
 });
 
 test('search form renders all approved fields and the submit button', () => {
@@ -23,6 +30,8 @@ test('search form renders all approved fields and the submit button', () => {
     'From',
     'Via',
     'To',
+    'One-way',
+    'Round-trip',
     'Departure Date Start',
     'Departure Date End',
     'Adults',
@@ -42,6 +51,33 @@ test('search form renders all approved fields and the submit button', () => {
   assert.match(markup, /name="minLayover"/);
   assert.match(markup, /name="maxLayover"/);
   assert.match(markup, /type="submit"/);
+});
+
+test('search form hides return date fields for one-way trips', () => {
+  const markup = searchForm.createSearchForm();
+
+  assert.doesNotMatch(markup, /name="returnDateRangeStart"/);
+  assert.doesNotMatch(markup, /name="returnDateRangeEnd"/);
+});
+
+test('search form shows return date fields for round trips', () => {
+  const markup = searchForm.createSearchForm({
+    values: {
+      ...searchForm.searchFormDefaults,
+      tripType: 'roundTrip',
+      returnDateRange: {
+        start: '2026-08-20',
+        end: '2026-08-25',
+      },
+    },
+  });
+
+  assert.match(markup, /Return Date Start/);
+  assert.match(markup, /Return Date End/);
+  assert.match(markup, /name="returnDateRangeStart"/);
+  assert.match(markup, /name="returnDateRangeEnd"/);
+  assert.match(markup, /value="2026-08-20"/);
+  assert.match(markup, /value="2026-08-25"/);
 });
 
 test('search form connects route fields to airport suggestions', () => {
@@ -83,6 +119,7 @@ test('creates the Wave 3 search query shape from submitted form data', () => {
   formData.set('from', 'Boston');
   formData.set('via', 'Istanbul');
   formData.set('to', 'Saint Petersburg');
+  formData.set('tripType', 'oneWay');
   formData.set('dateRangeStart', '2026-08-01');
   formData.set('dateRangeEnd', '2026-08-10');
   formData.set('adults', '2');
@@ -92,12 +129,38 @@ test('creates the Wave 3 search query shape from submitted form data', () => {
   assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), searchForm.searchFormDefaults);
 });
 
+test('creates a round-trip search query shape from submitted form data', () => {
+  const formData = new FormData();
+
+  formData.set('tripType', 'roundTrip');
+  formData.set('from', 'Boston');
+  formData.set('via', 'Istanbul');
+  formData.set('to', 'Saint Petersburg');
+  formData.set('dateRangeStart', '2026-08-01');
+  formData.set('dateRangeEnd', '2026-08-10');
+  formData.set('returnDateRangeStart', '2026-08-20');
+  formData.set('returnDateRangeEnd', '2026-08-25');
+  formData.set('adults', '2');
+  formData.set('minLayover', '3');
+  formData.set('maxLayover', '12');
+
+  assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), {
+    ...searchForm.searchFormDefaults,
+    tripType: 'roundTrip',
+    returnDateRange: {
+      start: '2026-08-20',
+      end: '2026-08-25',
+    },
+  });
+});
+
 test('airport suggestions do not change submitted route text values', () => {
   const formData = new FormData();
 
   formData.set('from', 'Boston');
   formData.set('via', 'Istanbul');
   formData.set('to', 'Saint Petersburg');
+  formData.set('tripType', 'oneWay');
   formData.set('dateRangeStart', '2026-08-01');
   formData.set('dateRangeEnd', '2026-08-10');
   formData.set('adults', '2');

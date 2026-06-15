@@ -7,6 +7,7 @@ import { duffelOfferRequestFixture } from './fixtures/duffelOfferRequest.js';
 import { serpapiGoogleFlightsFixture } from './fixtures/serpapiGoogleFlights.js';
 
 const baseQuery = {
+  tripType: 'oneWay',
   from: 'Boston',
   via: 'Istanbul',
   to: 'Saint Petersburg',
@@ -14,6 +15,10 @@ const baseQuery = {
   dateRange: {
     start: '2026-08-01',
     end: '2026-08-10',
+  },
+  returnDateRange: {
+    start: '',
+    end: '',
   },
   adults: 2,
   minLayover: 3,
@@ -60,6 +65,35 @@ test('searchFlightOffers uses mock adapter for mock mode', async () => {
 
   assert.ok(results.length >= 2);
   assert.ok(results.every((flight) => flight.route.stopover.city === baseQuery.via));
+});
+
+test('searchFlightOffers returns outbound and return sections for round trips', async () => {
+  const results = await searchFlightOffers(
+    {
+      ...baseQuery,
+      tripType: 'roundTrip',
+      returnDateRange: {
+        start: '2026-08-20',
+        end: '2026-08-25',
+      },
+    },
+    {
+      delayMs: 0,
+      env: {
+        VITE_FLIGHT_API_MODE: 'mock',
+      },
+    },
+  );
+
+  assert.deepEqual(Object.keys(results), ['outbound', 'return']);
+  assert.ok(Array.isArray(results.outbound));
+  assert.ok(Array.isArray(results.return));
+  assert.ok(results.outbound.length >= 1);
+  assert.ok(results.return.length >= 1);
+  assert.ok(results.outbound.every((flight) => flight.route.origin.city === 'Boston'));
+  assert.ok(results.outbound.every((flight) => flight.route.destination.city === 'Saint Petersburg'));
+  assert.ok(results.return.every((flight) => flight.route.origin.city === 'Saint Petersburg'));
+  assert.ok(results.return.every((flight) => flight.route.destination.city === 'Boston'));
 });
 
 test('searchFlightOffers falls back to mock adapter for unsupported mode', async () => {
@@ -231,6 +265,52 @@ test('searchFlightOffers sends resolved airport IATA codes in SerpApi proxy payl
       iata: 'LED',
     },
   });
+});
+
+test('searchFlightOffers sends reversed route and return dates for round-trip proxy searches', async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+
+    return {
+      ok: true,
+      json: async () => serpapiGoogleFlightsFixture,
+    };
+  };
+
+  await searchFlightOffers(
+    {
+      ...baseQuery,
+      tripType: 'roundTrip',
+      returnDateRange: {
+        start: '2026-08-20',
+        end: '2026-08-25',
+      },
+    },
+    {
+      fetchImpl,
+      env: {
+        VITE_FLIGHT_API_MODE: 'serpapi',
+        VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/serpapi-flights',
+      },
+    },
+  );
+
+  assert.equal(calls.length, 2);
+
+  const outboundPayload = JSON.parse(calls[0].init.body);
+  const returnPayload = JSON.parse(calls[1].init.body);
+
+  assert.equal(outboundPayload.route.from.iata, 'BOS');
+  assert.equal(outboundPayload.route.to.iata, 'LED');
+  assert.equal(outboundPayload.dateRange.start, '2026-08-01');
+  assert.equal(outboundPayload.dateRange.end, '2026-08-10');
+  assert.equal(returnPayload.route.from.iata, 'LED');
+  assert.equal(returnPayload.route.to.iata, 'BOS');
+  assert.equal(returnPayload.route.via.iata, 'IST');
+  assert.equal(returnPayload.departureDate, '2026-08-20');
+  assert.equal(returnPayload.dateRange.start, '2026-08-20');
+  assert.equal(returnPayload.dateRange.end, '2026-08-25');
 });
 
 test('searchFlightOffers returns normalized Amadeus offers through configured proxy', async () => {

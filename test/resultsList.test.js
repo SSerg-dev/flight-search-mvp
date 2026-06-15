@@ -98,6 +98,29 @@ test('results list connects matching flights to the selected departure range', (
   assert.match(markup, /Departures from 2026-08-01 to 2026-08-10/);
 });
 
+test('results list renders a custom section title', () => {
+  const markup = createResultsList(mockFlights.slice(0, 1), {
+    title: 'Outbound flights',
+  });
+
+  assert.match(markup, /Outbound flights/);
+  assert.doesNotMatch(markup, /1 matching flight/);
+});
+
+test('results list renders a custom date range label', () => {
+  const markup = createResultsList(mockFlights.slice(0, 1), {
+    dateRangeLabel: 'Returns',
+    query: {
+      dateRange: {
+        start: '2026-08-20',
+        end: '2026-08-25',
+      },
+    },
+  });
+
+  assert.match(markup, /Returns from 2026-08-20 to 2026-08-25/);
+});
+
 test('result card handles realistic normalized provider data', () => {
   const markup = createResultCard(realisticNormalizedFlightOffer);
 
@@ -151,4 +174,13 @@ test('results list renders an empty state when no flights match', () => {
 
   assert.match(markup, /No matching flights found/);
   assert.match(markup, /Try changing the date range or layover hours/);
+});
+
+test('results list empty state can include a custom section title', () => {
+  const markup = createResultsList([], {
+    title: 'Return flights',
+  });
+
+  assert.match(markup, /Return flights/);
+  assert.match(markup, /No matching flights found/);
 });

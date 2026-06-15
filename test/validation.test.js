@@ -4,6 +4,7 @@ import test from 'node:test';
 import { validateSearchQuery } from '../src/utils/validation.js';
 
 const validQuery = {
+  tripType: 'oneWay',
   from: 'Boston',
   via: 'Istanbul',
   to: 'Saint Petersburg',
@@ -11,6 +12,10 @@ const validQuery = {
   dateRange: {
     start: '2026-08-01',
     end: '2026-08-10',
+  },
+  returnDateRange: {
+    start: '',
+    end: '',
   },
   adults: 2,
   minLayover: 3,
@@ -84,4 +89,46 @@ test('rejects invalid layover range', () => {
 
   assert.equal(result.isValid, false);
   assert.equal(result.errors.layover, 'Min Layover Hours cannot be greater than Max Layover Hours.');
+});
+
+test('requires return dates for round-trip searches', () => {
+  const result = validateSearchQuery({
+    ...validQuery,
+    tripType: 'roundTrip',
+    returnDateRange: {
+      start: '',
+      end: '',
+    },
+  });
+
+  assert.equal(result.isValid, false);
+  assert.equal(result.errors.returnDateRange, 'Return Date Range is required for round trips.');
+});
+
+test('rejects invalid round-trip return date ranges', () => {
+  const result = validateSearchQuery({
+    ...validQuery,
+    tripType: 'roundTrip',
+    returnDateRange: {
+      start: '2026-08-25',
+      end: '2026-08-20',
+    },
+  });
+
+  assert.equal(result.isValid, false);
+  assert.equal(result.errors.returnDateRange, 'Return Date Range start date must be before or equal to end date.');
+});
+
+test('rejects return dates before the outbound date range ends', () => {
+  const result = validateSearchQuery({
+    ...validQuery,
+    tripType: 'roundTrip',
+    returnDateRange: {
+      start: '2026-08-09',
+      end: '2026-08-20',
+    },
+  });
+
+  assert.equal(result.isValid, false);
+  assert.equal(result.errors.returnDateRange, 'Return Date Start cannot be earlier than Departure Date End.');
 });

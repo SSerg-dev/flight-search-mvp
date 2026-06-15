@@ -10,7 +10,8 @@ Add a one-way / round-trip choice to the flight search MVP. Round-trip searches 
 - `One-way` is the default mode.
 - In `One-way` mode, only the existing departure date range is visible.
 - In `Round-trip` mode, a second date range appears with `Return Date Start` and `Return Date End`.
-- Search results for round trips are shown in two sections: `Outbound flights` and `Return flights`.
+- Search results for round trips are shown as paired trip rows. Each row contains one outbound flight card and one return flight card side by side on desktop, stacked inside the same row on mobile.
+- Each paired row shows a total estimated price for the outbound + return flights.
 
 ## Query model
 
@@ -36,10 +37,13 @@ The existing `dateRange` remains the outbound departure range.
   - Return: `To -> Via -> From` using `returnDateRange`.
 - The return search preserves the same mandatory stopover city.
 - Provider adapters continue to receive a one-way query shape. The round-trip orchestration happens above the provider adapter layer.
+- Round-trip display pairs results by index after sorting each side with the selected sort mode: `outbound[0] + return[0]`, `outbound[1] + return[1]`, and so on.
+- If one side has more results than the other, extra unpaired flights are not displayed in the MVP.
+- Pair sorting uses the combined pair value: total price for `price`, total duration for `duration`.
 
 ## Testing
 
 - Form tests cover the trip type control, hidden return fields in one-way mode, visible return fields in round-trip mode, and submitted query shape.
 - Validation tests cover required return dates, invalid return date ordering, and return dates earlier than outbound end.
-- Search service tests cover one-way compatibility and round-trip orchestration into outbound and return result sections.
-- Results rendering tests cover titled outbound and return sections.
+- Search service tests cover one-way compatibility and round-trip orchestration into outbound and return result arrays.
+- Results rendering tests cover paired round-trip rows, combined price, mobile-safe stacked layout, and empty paired results.

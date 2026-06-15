@@ -17,6 +17,10 @@ export function validateSearchQuery(query) {
     errors.dateRange = 'Date Range is required.';
   }
 
+  if (isRoundTrip(query) && (!hasText(query?.returnDateRange?.start) || !hasText(query?.returnDateRange?.end))) {
+    errors.returnDateRange = 'Return Date Range is required for round trips.';
+  }
+
   if (!hasText(query?.adults)) {
     errors.adults = 'Adults is required.';
   }
@@ -41,6 +45,14 @@ export function validateSearchQuery(query) {
     errors.dateRange = 'Date Range start date must be before or equal to end date.';
   }
 
+  if (!errors.returnDateRange && isRoundTrip(query) && query.returnDateRange.start > query.returnDateRange.end) {
+    errors.returnDateRange = 'Return Date Range start date must be before or equal to end date.';
+  }
+
+  if (!errors.dateRange && !errors.returnDateRange && isRoundTrip(query) && query.returnDateRange.start < query.dateRange.end) {
+    errors.returnDateRange = 'Return Date Start cannot be earlier than Departure Date End.';
+  }
+
   if (!errors.minLayover && !errors.maxLayover && Number(query.minLayover) > Number(query.maxLayover)) {
     errors.layover = 'Min Layover Hours cannot be greater than Max Layover Hours.';
   }
@@ -53,6 +65,10 @@ export function validateSearchQuery(query) {
 
 function hasText(value) {
   return String(value ?? '').trim().length > 0;
+}
+
+function isRoundTrip(query) {
+  return query?.tripType === 'roundTrip';
 }
 
 function hasDuplicateRoutePoint(query) {
