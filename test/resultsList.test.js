@@ -20,9 +20,36 @@ test('result card renders flight route, airline, price, dates, layover, and dura
   assert.match(markup, new RegExp(mockFlights[0].route.departureDate));
   assert.match(markup, new RegExp(mockFlights[0].duration.layoverDisplay));
   assert.match(markup, new RegExp(mockFlights[0].duration.display));
-  assert.match(markup, /Boston Depart 2026-08-01 at 21:35 -&gt; Istanbul Arrive 2026-08-02 at 14:25/);
+  assert.match(
+    markup,
+    /Boston Depart 2026-08-01 <span class="font-bold italic">Saturday<\/span> at 21:35 -&gt; Istanbul Arrive 2026-08-02 at 14:25/,
+  );
   assert.match(markup, /Istanbul Depart 2026-08-02 at 18:55 -&gt; Saint Petersburg Arrive 2026-08-03 at 02:15/);
   assert.match(markup, /2 adults/);
+});
+
+test('result card appends the weekday name only to the Boston departure date', () => {
+  const markup = createResultCard({
+    ...mockFlights[0],
+    segments: [
+      {
+        ...mockFlights[0].segments[0],
+        departure: '2026-08-09 21:50',
+        arrival: '2026-08-10 14:10',
+      },
+      {
+        ...mockFlights[0].segments[1],
+        departure: '2026-08-10 21:45',
+        arrival: '2026-08-11 01:30',
+      },
+    ],
+  });
+
+  assert.match(
+    markup,
+    /Boston Depart 2026-08-09 <span class="font-bold italic">Sunday<\/span> at 21:50 -&gt; Istanbul Arrive 2026-08-10 at 14:10/,
+  );
+  assert.match(markup, /Istanbul Depart 2026-08-10 at 21:45 -&gt; Saint Petersburg Arrive 2026-08-11 at 01:30/);
 });
 
 test('result card hides misleading zero-hour layover durations', () => {
@@ -36,9 +63,17 @@ test('result card hides misleading zero-hour layover durations', () => {
     },
   });
 
-  assert.match(markup, /Stay in Istanbul\s*· 3h 20m/);
+  assert.match(markup, /<p>\s*Stay in Istanbul\s*<\/p>/);
+  assert.match(markup, /<p class="font-semibold text-slate-900">\s*· 3h 20m\s*<\/p>/);
   assert.doesNotMatch(markup, /0h layover/);
   assert.doesNotMatch(markup, /3h 20m total/);
+});
+
+test('result card renders total duration as a separate bold line below the layover', () => {
+  const markup = createResultCard(mockFlights[0]);
+
+  assert.match(markup, /<p>\s*4\.5h layover in Istanbul\s*<\/p>/);
+  assert.match(markup, /<p class="font-semibold text-slate-900">\s*· 21h 40m total\s*<\/p>/);
 });
 
 test('results list renders matching result cards', () => {
@@ -47,6 +82,20 @@ test('results list renders matching result cards', () => {
   assert.match(markup, /2 matching flights/);
   assert.match(markup, new RegExp(mockFlights[0].airline.name));
   assert.match(markup, new RegExp(mockFlights[1].airline.name));
+});
+
+test('results list connects matching flights to the selected departure range', () => {
+  const markup = createResultsList(mockFlights.slice(0, 1), {
+    query: {
+      dateRange: {
+        start: '2026-08-01',
+        end: '2026-08-10',
+      },
+    },
+  });
+
+  assert.match(markup, /1 matching flight/);
+  assert.match(markup, /Departures from 2026-08-01 to 2026-08-10/);
 });
 
 test('result card handles realistic normalized provider data', () => {

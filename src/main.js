@@ -12,6 +12,7 @@ const appState = {
   values: searchFormDefaults,
   errors: {},
   results: undefined,
+  lastQuery: undefined,
   isLoading: false,
   serviceError: '',
   sortBy: 'price',
@@ -30,7 +31,7 @@ function renderApp() {
       isLoading: appState.isLoading,
       serviceError: appState.serviceError,
     }) +
-    createResultsMarkup(appState.results, appState.sortBy);
+    createResultsMarkup(appState.results, appState.sortBy, appState.lastQuery);
   app.querySelector('form').addEventListener('submit', handleSearchSubmit);
   app.querySelector('#sortBy')?.addEventListener('change', handleSortChange);
 }
@@ -45,6 +46,7 @@ async function handleSearchSubmit(event) {
     appState.values = query;
     appState.errors = result.errors;
     appState.results = undefined;
+    appState.lastQuery = undefined;
     appState.isLoading = false;
     appState.serviceError = '';
     renderApp();
@@ -55,6 +57,7 @@ async function handleSearchSubmit(event) {
   appState.values = query;
   appState.errors = {};
   appState.results = undefined;
+  appState.lastQuery = query;
   appState.isLoading = true;
   appState.serviceError = '';
   renderApp();
@@ -75,10 +78,10 @@ function handleSortChange(event) {
   renderApp();
 }
 
-function createResultsMarkup(results, sortBy) {
+function createResultsMarkup(results, sortBy, query) {
   if (!Array.isArray(results)) {
     return '';
   }
 
-  return createResultsList(sortFlights(results, sortBy), { sortBy });
+  return createResultsList(sortFlights(results, sortBy), { sortBy, query });
 }

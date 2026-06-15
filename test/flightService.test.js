@@ -4,6 +4,7 @@ import test from 'node:test';
 import { searchFlightOffers } from '../src/services/flightService.js';
 import { amadeusFlightOffersFixture } from './fixtures/amadeusFlightOffers.js';
 import { duffelOfferRequestFixture } from './fixtures/duffelOfferRequest.js';
+import { serpapiGoogleFlightsFixture } from './fixtures/serpapiGoogleFlights.js';
 
 const baseQuery = {
   from: 'Boston',
@@ -158,6 +159,78 @@ test('searchFlightOffers fails safely when Amadeus mode has no proxy URL', async
       message: 'Flight API proxy URL is required for Amadeus mode.',
     },
   );
+});
+
+test('searchFlightOffers fails safely when SerpApi mode has no proxy URL', async () => {
+  await assert.rejects(
+    searchFlightOffers(baseQuery, {
+      delayMs: 0,
+      env: {
+        VITE_FLIGHT_API_MODE: 'serpapi',
+      },
+    }),
+    {
+      message: 'Flight API proxy URL is required for SerpApi mode.',
+    },
+  );
+});
+
+test('searchFlightOffers returns normalized SerpApi offers through configured proxy', async () => {
+  const fetchImpl = async () => ({
+    ok: true,
+    json: async () => serpapiGoogleFlightsFixture,
+  });
+
+  const results = await searchFlightOffers(baseQuery, {
+    fetchImpl,
+    env: {
+      VITE_FLIGHT_API_MODE: 'serpapi',
+      VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/serpapi-flights',
+    },
+  });
+
+  assert.equal(results.length, 1);
+  assert.equal(results[0].airline.name, 'Turkish Airlines');
+  assert.equal(results[0].price.display, '$713');
+  assert.equal(results[0].route.stopover.city, 'Istanbul');
+});
+
+test('searchFlightOffers sends resolved airport IATA codes in SerpApi proxy payload', async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+
+    return {
+      ok: true,
+      json: async () => serpapiGoogleFlightsFixture,
+    };
+  };
+
+  await searchFlightOffers(baseQuery, {
+    fetchImpl,
+    env: {
+      VITE_FLIGHT_API_MODE: 'serpapi',
+      VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/serpapi-flights',
+    },
+  });
+
+  const payload = JSON.parse(calls[0].init.body);
+
+  assert.equal(payload.provider, 'serpapi');
+  assert.deepEqual(payload.route, {
+    from: {
+      query: 'Boston',
+      iata: 'BOS',
+    },
+    via: {
+      query: 'Istanbul',
+      iata: 'IST',
+    },
+    to: {
+      query: 'Saint Petersburg',
+      iata: 'LED',
+    },
+  });
 });
 
 test('searchFlightOffers returns normalized Amadeus offers through configured proxy', async () => {

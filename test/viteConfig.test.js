@@ -55,6 +55,57 @@ test('Vite dev middleware uses server-only Duffel env from loaded env files', as
   assert.equal(JSON.parse(response.body).data.authorization, 'Bearer server-duffel-token');
 });
 
+test('Vite dev middleware uses server-only SerpApi env from loaded env files', async () => {
+  const config = createFlightSearchViteConfig({
+    env: {
+      SERPAPI_API_KEY: 'server-serpapi-key',
+      SERPAPI_API_BASE_URL: 'https://serpapi.test',
+    },
+    fetchImpl: async (url) => ({
+      ok: true,
+      json: async () => ({
+        searchUrl: url,
+      }),
+    }),
+  });
+  const serpApiPlugin = config.plugins.find((plugin) => plugin.name === 'flight-search-serpapi-api-dev');
+  const middlewareCalls = [];
+
+  serpApiPlugin.configureServer({
+    middlewares: {
+      use(middleware) {
+        middlewareCalls.push(middleware);
+      },
+    },
+  });
+
+  const request = createRequest({
+    method: 'POST',
+    url: '/api/serpapi-flights',
+    body: JSON.stringify({
+      provider: 'serpapi',
+      route: {
+        from: { iata: 'BOS' },
+        via: { iata: 'IST' },
+        to: { iata: 'LED' },
+      },
+      departureDate: '2026-08-01',
+      adults: 1,
+    }),
+  });
+  const response = createResponse();
+
+  await middlewareCalls[0](request, response, () => {
+    throw new Error('next should not be called for SerpApi requests');
+  });
+
+  assert.equal(response.status, 200);
+
+  const searchUrl = new URL(JSON.parse(response.body).searchUrl);
+  assert.equal(searchUrl.origin, 'https://serpapi.test');
+  assert.equal(searchUrl.searchParams.get('api_key'), 'server-serpapi-key');
+});
+
 function createRequest({ method, url, body }) {
   const request = new EventEmitter();
   request.method = method;

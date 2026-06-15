@@ -10,7 +10,7 @@ Frontend MVP for searching flights with one mandatory stop.
 
 ## Current Wave
 
-MVP v3: Wave 14 — Duffel local deployment wiring.
+MVP v3: Wave 15 — SerpApi Google Flights provider wiring.
 
 Automated verification:
 
@@ -25,16 +25,25 @@ Local development and tests use mock flight data by default:
 VITE_FLIGHT_API_MODE=mock
 ```
 
-Future real API mode must use a frontend-safe proxy URL:
+Real API mode must use a frontend-safe proxy URL:
 
 ```text
-VITE_FLIGHT_API_MODE=duffel
-VITE_FLIGHT_API_PROXY_URL=/api/duffel-flights
+VITE_FLIGHT_API_MODE=serpapi
+VITE_FLIGHT_API_PROXY_URL=/api/serpapi-flights
 ```
 
 Do not put provider API keys, API secrets, bearer tokens, or access tokens in frontend `VITE_` variables. Real provider credentials belong behind a backend/serverless proxy.
 
-Duffel is the preferred real flight provider after the Amadeus Self-Service portal decommissioning risk. Amadeus remains as a legacy/reference adapter path.
+SerpApi Google Flights is the preferred free-tier MVP provider. Duffel and Amadeus remain as legacy/reference adapter paths.
+
+Server-side SerpApi proxy configuration:
+
+```text
+SERPAPI_API_KEY=your-server-side-serpapi-key
+SERPAPI_API_BASE_URL=https://serpapi.com
+```
+
+The proxy endpoint in `api/serpapi-flights.js` accepts the frontend SerpApi proxy payload, calls SerpApi Google Flights with server-side credentials, and returns provider results for frontend normalization. During local Vite development, `vite.config.js` wires `/api/serpapi-flights` to the same serverless handler.
 
 Server-side Duffel proxy configuration:
 

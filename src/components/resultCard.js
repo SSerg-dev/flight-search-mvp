@@ -49,7 +49,7 @@ function createSegmentTimingDisplay(flight) {
   return `<div class="grid gap-1">${segmentLines}</div>`;
 }
 
-function createSegmentTimingLine(segment) {
+function createSegmentTimingLine(segment, index) {
   if (
     !hasText(segment.from) ||
     !hasText(segment.to) ||
@@ -59,8 +59,10 @@ function createSegmentTimingLine(segment) {
     return '';
   }
 
+  const departureDateDisplay = index === 0 ? getDateWithWeekdayMarkup(segment.departure) : escapeHtml(getDate(segment.departure));
+
   return `
-            <p>${escapeHtml(segment.from)} Depart ${escapeHtml(getDate(segment.departure))} at ${escapeHtml(getTime(segment.departure))} -&gt; ${escapeHtml(segment.to)} Arrive ${escapeHtml(getDate(segment.arrival))} at ${escapeHtml(getTime(segment.arrival))}</p>
+            <p>${escapeHtml(segment.from)} Depart ${departureDateDisplay} at ${escapeHtml(getTime(segment.departure))} -&gt; ${escapeHtml(segment.to)} Arrive ${escapeHtml(getDate(segment.arrival))} at ${escapeHtml(getTime(segment.arrival))}</p>
   `;
 }
 
@@ -73,6 +75,8 @@ function createDurationDisplay(flight) {
     return `
           <p>
             Stay in ${escapeHtml(flight.route?.stopover?.city)}
+          </p>
+          <p class="font-semibold text-slate-900">
             · ${escapeHtml(getStayDisplay(flight))}
           </p>
   `;
@@ -88,6 +92,8 @@ function createDurationDisplay(flight) {
   return `
           <p>
             ${escapeHtml(layoverDisplay)}
+          </p>
+          <p class="font-semibold text-slate-900">
             · ${escapeHtml(flight.duration.display)}${totalSuffix}
           </p>
   `;
@@ -103,6 +109,33 @@ function getStayDisplay(flight) {
 
 function getDate(dateTime) {
   return String(dateTime).split(' ')[0] ?? '';
+}
+
+function getDateWithWeekdayMarkup(dateTime) {
+  const date = getDate(dateTime);
+  const weekday = getWeekday(date);
+
+  if (!hasText(weekday)) {
+    return escapeHtml(date);
+  }
+
+  return `${escapeHtml(date)} <span class="font-bold italic">${escapeHtml(weekday)}</span>`;
+}
+
+function getWeekday(date) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(date ?? ''));
+
+  if (!match) {
+    return '';
+  }
+
+  const value = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+
+  if (Number.isNaN(value.getTime())) {
+    return '';
+  }
+
+  return ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][value.getUTCDay()];
 }
 
 function getTime(dateTime) {
