@@ -272,20 +272,33 @@ Reason:
 
 ## Recommended Next Infrastructure Step
 
-Add a Codespaces/devcontainer setup:
+The project has a Codespaces/devcontainer setup:
 
 ```text
 .devcontainer/
 └─ devcontainer.json
 ```
 
-The devcontainer should support:
+The devcontainer uses a Node.js 22 image, runs `npm install` after creation, and forwards Vite port `5173`.
 
-```bash
-npm install
-npm test
-npm run build
-npm run dev
+Codespaces startup steps:
+
+```text
+1. Open the GitHub repository.
+2. Choose Code -> Codespaces -> Create codespace on master.
+3. Wait for the post-create `npm install` command to finish.
+4. Run `npm test`.
+5. Run `npm run build`.
+6. Run `npm run dev -- --host 0.0.0.0`.
+7. Open the forwarded Vite port.
 ```
 
-This will make Codespaces a reliable clean verification environment for Hermes-led orchestration.
+Verification commands:
+
+```bash
+npm test
+npm run build
+npm run dev -- --host 0.0.0.0
+```
+
+This makes Codespaces a reliable clean verification environment for Hermes-led orchestration.
