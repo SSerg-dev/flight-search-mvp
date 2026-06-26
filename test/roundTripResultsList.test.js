@@ -130,6 +130,18 @@ test('round-trip results render an accessible sorting dropdown', () => {
   assert.match(markup, /value="duration" selected/);
 });
 
+test('round-trip results include dark theme classes for rows and sort controls', () => {
+  const markup = createRoundTripResultsList({
+    outbound: [cheapOutbound],
+    return: [cheapReturn],
+  });
+
+  assert.match(markup, /dark:bg-slate-900/);
+  assert.match(markup, /dark:border-slate-700/);
+  assert.match(markup, /dark:text-slate-100/);
+  assert.match(markup, /dark:text-slate-300/);
+});
+
 function createFlight({ id, airlineName, amount, totalMinutes, origin, stopover, destination, departureDate }) {
   return {
     id,

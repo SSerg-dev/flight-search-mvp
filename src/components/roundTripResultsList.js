@@ -6,9 +6,9 @@ export function createRoundTripResultsList(results = {}, { sortBy = 'price' } = 
 
   if (pairs.length === 0) {
     return `
-      <section class="mx-auto mt-6 max-w-5xl rounded border border-dashed border-slate-300 bg-white p-6 text-center sm:p-8" aria-live="polite">
-        <h2 class="text-lg font-semibold text-slate-950">No matching round-trip pairs found</h2>
-        <p class="mt-2 text-sm text-slate-600">Try changing the date ranges or layover hours.</p>
+      <section class="mx-auto mt-6 max-w-5xl rounded border border-dashed border-slate-300 bg-white p-6 text-center dark:border-slate-700 dark:bg-slate-900 sm:p-8" aria-live="polite">
+        <h2 class="text-lg font-semibold text-slate-950 dark:text-slate-100">No matching round-trip pairs found</h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">Try changing the date ranges or layover hours.</p>
       </section>
     `;
   }
@@ -17,13 +17,13 @@ export function createRoundTripResultsList(results = {}, { sortBy = 'price' } = 
     <section class="mx-auto mt-6 grid max-w-5xl gap-4 px-4 sm:px-0" aria-live="polite">
       <div class="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
         <div>
-          <h2 class="text-xl font-semibold text-slate-950">Round-trip options</h2>
-          <p class="mt-1 text-sm text-slate-600">Each option pairs one outbound flight with one return flight.</p>
+          <h2 class="text-xl font-semibold text-slate-950 dark:text-slate-100">Round-trip options</h2>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Each option pairs one outbound flight with one return flight.</p>
         </div>
-        <label class="grid gap-1 text-sm font-medium text-slate-700" for="sortBy">
+        <label class="grid gap-1 text-sm font-medium text-slate-700 dark:text-slate-300" for="sortBy">
           Sort results
           <select
-            class="h-10 rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200"
+            class="h-10 rounded border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-sky-400 dark:focus:ring-sky-700"
             id="sortBy"
             name="sortBy"
           >
@@ -73,15 +73,15 @@ function sortRoundTripPairs(pairs, sortBy) {
 
 function createRoundTripPairRow(pair, index) {
   return `
-    <article class="grid gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+    <article class="grid gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5">
       <div class="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-start">
         <div>
-          <h3 class="text-lg font-semibold text-slate-950">Option ${index + 1}</h3>
-          <p class="mt-1 text-sm text-slate-600">Outbound flight + return flight</p>
+          <h3 class="text-lg font-semibold text-slate-950 dark:text-slate-100">Option ${index + 1}</h3>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Outbound flight + return flight</p>
         </div>
         <div class="text-left sm:text-right">
-          <p class="text-sm font-medium text-slate-600">Total estimated price</p>
-          <p class="text-2xl font-semibold text-slate-950">${formatPairPrice(pair)}</p>
+          <p class="text-sm font-medium text-slate-600 dark:text-slate-300">Total estimated price</p>
+          <p class="text-2xl font-semibold text-slate-950 dark:text-white">${formatPairPrice(pair)}</p>
         </div>
       </div>
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -95,7 +95,7 @@ function createRoundTripPairRow(pair, index) {
 function createLabeledFlightCard(label, flight) {
   return `
     <div class="grid gap-2">
-      <p class="text-sm font-semibold text-slate-700">${label}</p>
+      <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">${label}</p>
       ${createResultCard(flight)}
     </div>
   `;

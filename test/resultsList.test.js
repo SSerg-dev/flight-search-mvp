@@ -98,7 +98,7 @@ test('result card hides misleading zero-hour layover durations', () => {
   });
 
   assert.match(markup, /<p>\s*Stay in Istanbul\s*<\/p>/);
-  assert.match(markup, /<p class="font-semibold text-slate-900">\s*3h 20m\s*<\/p>/);
+  assert.match(markup, /<p class="font-semibold text-slate-900 dark:text-slate-100">\s*3h 20m\s*<\/p>/);
   assert.doesNotMatch(markup, /0h layover/);
   assert.doesNotMatch(markup, /3h 20m total/);
 });
@@ -107,7 +107,7 @@ test('result card renders total duration as a separate bold line below the layov
   const markup = createResultCard(mockFlights[0]);
 
   assert.match(markup, /<p>\s*4\.5h layover in Istanbul\s*<\/p>/);
-  assert.match(markup, /<p class="font-semibold text-slate-900">\s*21h 40m total\s*<\/p>/);
+  assert.match(markup, /<p class="font-semibold text-slate-900 dark:text-slate-100">\s*21h 40m total\s*<\/p>/);
 });
 
 test('results list renders matching result cards', () => {
@@ -217,4 +217,16 @@ test('results list empty state can include a custom section title', () => {
 
   assert.match(markup, /Return flights/);
   assert.match(markup, /No matching flights found/);
+});
+
+test('results list includes dark theme classes for headings, empty states, and sort controls', () => {
+  const populatedMarkup = createResultsList(mockFlights.slice(0, 1));
+  const emptyMarkup = createResultsList([]);
+
+  assert.match(populatedMarkup, /dark:text-slate-100/);
+  assert.match(populatedMarkup, /dark:text-slate-300/);
+  assert.match(populatedMarkup, /dark:bg-slate-900/);
+  assert.match(populatedMarkup, /dark:border-slate-700/);
+  assert.match(emptyMarkup, /dark:bg-slate-900/);
+  assert.match(emptyMarkup, /dark:border-slate-700/);
 });

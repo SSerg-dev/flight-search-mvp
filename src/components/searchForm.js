@@ -20,7 +20,7 @@ export const searchFormDefaults = {
 };
 
 const inputClass =
-  'h-11 rounded border border-slate-300 bg-white px-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-200';
+  'h-11 rounded border border-slate-300 bg-white px-3 text-base text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-sky-400 dark:focus:ring-sky-700';
 
 function createFieldError(fieldName, errors) {
   if (!errors?.[fieldName]) {
@@ -42,7 +42,7 @@ function createTextField({ id, label, value, errors, listId = '' }) {
   const listAttribute = listId ? `list="${escapeHtml(listId)}"` : '';
 
   return `
-    <label class="grid gap-2 text-sm font-medium text-slate-700" for="${id}">
+    <label class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300" for="${id}">
       <span class="block min-h-5">${label}</span>
       <input
         class="${inputClass}"
@@ -71,7 +71,7 @@ function createAirportSuggestionsDatalist() {
 
 function createNumberField({ id, label, value, min, errors }) {
   return `
-    <label class="grid gap-2 text-sm font-medium text-slate-700" for="${id}">
+    <label class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300" for="${id}">
       <span class="block min-h-5">${label}</span>
       <input
         class="${inputClass}"
@@ -89,7 +89,7 @@ function createNumberField({ id, label, value, min, errors }) {
 
 function createDateField({ id, label, value, errors }) {
   return `
-    <label class="grid gap-2 text-sm font-medium text-slate-700" for="${id}">
+    <label class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300" for="${id}">
       <span class="block min-h-5">${label}</span>
       <input
         class="${inputClass}"
@@ -128,23 +128,26 @@ export function createSearchQueryFromFormData(formData) {
   };
 }
 
-export function createSearchForm({ values = searchFormDefaults, errors = {}, isLoading = false } = {}) {
+export function createSearchForm({ theme = 'light', values = searchFormDefaults, errors = {}, isLoading = false } = {}) {
   const buttonText = isLoading ? 'Searching...' : 'Search Flights';
   const loadingAttributes = isLoading ? 'disabled aria-busy="true"' : 'aria-busy="false"';
 
   return `
-    <main class="bg-slate-50 px-4 py-6 text-slate-900 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+    <main class="bg-slate-50 px-4 py-6 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <section class="mx-auto max-w-5xl">
-        <div class="mb-5 sm:mb-6">
-          <h1 class="text-2xl font-semibold tracking-normal text-slate-950 sm:text-3xl">
-            Flight Search
-          </h1>
-          <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-            Search flights with one mandatory stop.
-          </p>
+        <div class="mb-5 grid gap-4 sm:mb-6 sm:grid-cols-[1fr_auto] sm:items-start">
+          <div>
+            <h1 class="text-2xl font-semibold tracking-normal text-slate-950 dark:text-slate-50 sm:text-3xl">
+              Flight Search
+            </h1>
+            <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Search flights with one mandatory stop.
+            </p>
+          </div>
+          ${createThemeToggle(theme)}
         </div>
 
-        <form class="grid gap-5 rounded border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:gap-6" novalidate>
+        <form class="grid gap-5 rounded border border-slate-200 bg-white p-4 shadow-sm transition-colors dark:border-slate-700 dark:bg-slate-900 sm:p-6 lg:gap-6" novalidate>
           ${createFieldError('route', errors)}
 
           ${createTripTypeControl(values.tripType)}
@@ -175,7 +178,7 @@ export function createSearchForm({ values = searchFormDefaults, errors = {}, isL
           </div>
 
           <div class="grid gap-3">
-            <p class="text-sm font-medium text-slate-700">Date Range</p>
+            <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Date Range</p>
             <div class="grid items-start gap-4 md:grid-cols-2">
               ${createDateField({
                 id: 'dateRangeStart',
@@ -222,7 +225,7 @@ export function createSearchForm({ values = searchFormDefaults, errors = {}, isL
 
           <div class="flex justify-stretch sm:justify-start">
             <button
-              class="h-11 w-full rounded bg-sky-600 px-5 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 sm:w-auto"
+              class="h-11 w-full rounded bg-sky-600 px-5 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 focus:ring-offset-white dark:bg-sky-500 dark:hover:bg-sky-400 dark:focus:ring-sky-300 dark:focus:ring-offset-slate-900 sm:w-auto"
               type="submit"
               ${loadingAttributes}
             >
@@ -240,7 +243,7 @@ function createTripTypeControl(tripType) {
 
   return `
     <fieldset class="grid gap-2">
-      <legend class="text-sm font-medium text-slate-700">Trip Type</legend>
+      <legend class="text-sm font-medium text-slate-700 dark:text-slate-300">Trip Type</legend>
       <div class="grid gap-2 sm:flex">
         ${createTripTypeOption({
           value: 'oneWay',
@@ -261,9 +264,9 @@ function createTripTypeOption({ value, label, selectedTripType }) {
   const checkedAttribute = value === selectedTripType ? ' checked' : '';
 
   return `
-    <label class="flex h-11 items-center gap-2 rounded border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
+    <label class="flex h-11 items-center gap-2 rounded border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 transition-colors dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200">
       <input
-        class="h-4 w-4 text-sky-600"
+        class="h-4 w-4 text-sky-600 dark:text-sky-400"
         type="radio"
         name="tripType"
         value="${value}"
@@ -281,7 +284,7 @@ function createReturnDateRangeFields(values, errors) {
 
   return `
     <div class="grid gap-3">
-      <p class="text-sm font-medium text-slate-700">Return Date Range</p>
+      <p class="text-sm font-medium text-slate-700 dark:text-slate-300">Return Date Range</p>
       <div class="grid items-start gap-4 md:grid-cols-2">
         ${createDateField({
           id: 'returnDateRangeStart',
@@ -307,6 +310,26 @@ function toOptionalNumber(value) {
   }
 
   return Number(value);
+}
+
+function createThemeToggle(theme) {
+  const isDark = theme === 'dark';
+  const label = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+  const text = isDark ? 'Dark' : 'Light';
+  const icon = isDark ? 'Moon' : 'Sun';
+
+  return `
+    <button
+      class="inline-flex h-10 w-fit items-center justify-center gap-2 rounded border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700 transition hover:border-sky-300 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 focus:ring-offset-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-sky-500 dark:hover:text-white dark:focus:ring-sky-500 dark:focus:ring-offset-slate-950"
+      id="theme-toggle"
+      type="button"
+      aria-label="${label}"
+      aria-pressed="${isDark}"
+    >
+      <span aria-hidden="true">${icon}</span>
+      <span>${text}</span>
+    </button>
+  `;
 }
 
 function escapeHtml(value) {

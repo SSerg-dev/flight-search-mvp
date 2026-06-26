@@ -226,3 +226,22 @@ test('search form disables submit button while loading', () => {
   assert.match(markup, /aria-busy="true"/);
   assert.match(markup, /Searching/);
 });
+
+test('search form renders an accessible theme toggle with current state', () => {
+  const markup = searchForm.createSearchForm({ theme: 'dark' });
+
+  assert.match(markup, /id="theme-toggle"/);
+  assert.match(markup, /aria-label="Switch to light theme"/);
+  assert.match(markup, /aria-pressed="true"/);
+  assert.match(markup, /Dark/);
+});
+
+test('search form includes dark theme classes for primary surfaces and inputs', () => {
+  const markup = searchForm.createSearchForm();
+
+  assert.match(markup, /dark:bg-slate-950/);
+  assert.match(markup, /dark:bg-slate-900/);
+  assert.match(markup, /dark:border-slate-700/);
+  assert.match(markup, /dark:text-slate-100/);
+  assert.match(markup, /dark:focus:ring-sky-700/);
+});

@@ -10,15 +10,15 @@ export function createResultCard(flight) {
   const departurePeriodBadge = createDeparturePeriodBadge(firstSegment.departure);
 
   return `
-    <article class="grid gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm transition hover:border-sky-300 hover:shadow-md sm:grid-cols-[1fr_auto] sm:items-start sm:p-5">
+    <article class="grid gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm transition hover:border-sky-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-sky-600 sm:grid-cols-[1fr_auto] sm:items-start sm:p-5">
       <div class="grid gap-3">
         <div>
-          <h2 class="text-lg font-semibold text-slate-950">${escapeHtml(flight.airline?.name)}</h2>
-          <p class="mt-1 text-sm text-slate-600">${escapeHtml(flightNumbers)}</p>
+          <h2 class="text-lg font-semibold text-slate-950 dark:text-slate-100">${escapeHtml(flight.airline?.name)}</h2>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">${escapeHtml(flightNumbers)}</p>
         </div>
 
-        <div class="grid gap-2 text-sm text-slate-700">
-          <p class="font-medium text-slate-900">
+        <div class="grid gap-2 text-sm text-slate-700 dark:text-slate-300">
+          <p class="font-medium text-slate-900 dark:text-slate-100">
             ${escapeHtml(flight.route?.origin?.city)} to ${escapeHtml(flight.route?.stopover?.city)} to ${escapeHtml(flight.route?.destination?.city)}
           </p>
           ${departurePeriodBadge}
@@ -28,8 +28,8 @@ export function createResultCard(flight) {
       </div>
 
       <div class="grid gap-1 text-left sm:text-right">
-        <p class="text-2xl font-semibold text-slate-950">${escapeHtml(priceDisplay)}</p>
-        <p class="text-sm text-slate-600">
+        <p class="text-2xl font-semibold text-slate-950 dark:text-white">${escapeHtml(priceDisplay)}</p>
+        <p class="text-sm text-slate-600 dark:text-slate-400">
           ${escapeHtml(flight.price?.currency)} total for ${escapeHtml(flight.price?.passengerCount)} adults
         </p>
       </div>
@@ -46,8 +46,8 @@ function createDeparturePeriodBadge(dateTime) {
 
   const badgeClass =
     period === 'day'
-      ? 'border-amber-200 bg-amber-50 text-amber-800'
-      : 'border-indigo-200 bg-indigo-50 text-indigo-800';
+      ? 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-400/10 dark:text-amber-200'
+      : 'border-indigo-200 bg-indigo-50 text-indigo-800 dark:border-indigo-400/40 dark:bg-indigo-400/10 dark:text-indigo-200';
   const label = period === 'day' ? 'Daytime departure' : 'Night departure';
   const icon = period === 'day' ? '☀' : '☾';
   const iconName = period === 'day' ? 'Sun' : 'Moon';
@@ -114,7 +114,7 @@ function createDurationDisplay(flight) {
           <p>
             Stay in ${escapeHtml(flight.route?.stopover?.city)}
           </p>
-          <p class="font-semibold text-slate-900">
+          <p class="font-semibold text-slate-900 dark:text-slate-100">
             ${escapeHtml(getStayDisplay(flight))}
           </p>
   `;
@@ -131,7 +131,7 @@ function createDurationDisplay(flight) {
           <p>
             ${escapeHtml(layoverDisplay)}
           </p>
-          <p class="font-semibold text-slate-900">
+          <p class="font-semibold text-slate-900 dark:text-slate-100">
             ${escapeHtml(flight.duration.display)}${totalSuffix}
           </p>
   `;

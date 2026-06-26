@@ -33,3 +33,15 @@ test('keeps validation errors separate from service errors', () => {
 
   assert.doesNotMatch(markup, /data-error-for=/);
 });
+
+test('status messages include dark theme classes', () => {
+  const loadingMarkup = createSearchStatus({ isLoading: true });
+  const errorMarkup = createSearchStatus({ serviceError: 'Flight API rate limit reached.' });
+
+  assert.match(loadingMarkup, /dark:border-sky-800/);
+  assert.match(loadingMarkup, /dark:bg-sky-950/);
+  assert.match(loadingMarkup, /dark:text-sky-100/);
+  assert.match(errorMarkup, /dark:border-red-800/);
+  assert.match(errorMarkup, /dark:bg-red-950/);
+  assert.match(errorMarkup, /dark:text-red-100/);
+});

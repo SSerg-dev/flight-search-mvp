@@ -4,11 +4,16 @@ import { createSearchResultsMarkup } from './components/searchResults.js';
 import { createSearchStatus } from './components/searchStatus.js';
 import { searchFlightOffers } from './services/flightService.js';
 import { getServiceErrorMessage } from './utils/serviceErrorMessage.js';
+import { applyTheme, getInitialTheme, getNextTheme, persistTheme } from './utils/theme.js';
 import { validateSearchQuery } from './utils/validation.js';
 
 const app = document.querySelector('#app');
+const initialTheme = getInitialTheme();
+
+applyTheme(initialTheme);
 
 const appState = {
+  theme: initialTheme,
   values: searchFormDefaults,
   errors: {},
   results: undefined,
@@ -23,6 +28,7 @@ renderApp();
 function renderApp() {
   app.innerHTML =
     createSearchForm({
+      theme: appState.theme,
       values: appState.values,
       errors: appState.errors,
       isLoading: appState.isLoading,
@@ -36,8 +42,10 @@ function renderApp() {
       query: appState.lastQuery,
     });
   const form = app.querySelector('form');
+  const themeToggle = app.querySelector('#theme-toggle');
 
   form.addEventListener('submit', handleSearchSubmit);
+  themeToggle.addEventListener('click', handleThemeToggle);
   form.querySelectorAll('input[name="tripType"]').forEach((input) => {
     input.addEventListener('change', handleTripTypeChange);
   });
@@ -96,5 +104,12 @@ function handleTripTypeChange(event) {
   appState.results = undefined;
   appState.lastQuery = undefined;
   appState.serviceError = '';
+  renderApp();
+}
+
+function handleThemeToggle() {
+  appState.theme = getNextTheme(appState.theme);
+  applyTheme(appState.theme);
+  persistTheme(appState.theme);
   renderApp();
 }
