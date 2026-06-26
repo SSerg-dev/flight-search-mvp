@@ -1,7 +1,5 @@
 export const FLIGHT_API_MODES = {
   MOCK: 'mock',
-  AMADEUS: 'amadeus',
-  DUFFEL: 'duffel',
   SERPAPI: 'serpapi',
 };
 
@@ -44,19 +42,15 @@ export function getApiConfig(env = getDefaultEnv()) {
 }
 
 function isProxyMode(mode) {
-  return mode === FLIGHT_API_MODES.AMADEUS || mode === FLIGHT_API_MODES.DUFFEL || mode === FLIGHT_API_MODES.SERPAPI;
+  return mode === FLIGHT_API_MODES.SERPAPI;
 }
 
 function getModeLabel(mode) {
-  if (mode === FLIGHT_API_MODES.DUFFEL) {
-    return 'Duffel';
-  }
-
   if (mode === FLIGHT_API_MODES.SERPAPI) {
     return 'SerpApi';
   }
 
-  return 'Amadeus';
+  return 'Flight API';
 }
 
 function normalizeMode(value) {

@@ -13,9 +13,10 @@ Wave 11 - Provider Replacement Decision
 - [x] Amadeus Self-Service decommissioning risk recorded
 - [x] Amadeus moved to legacy/reference provider status
 - [x] Replacement provider shortlist considered
-- [x] Duffel selected as primary replacement provider
+- [x] SerpApi selected as current primary MVP provider path
+- [x] Duffel retained as reference provider path
 - [x] Backend/serverless proxy boundary preserved
-- [x] Next implementation wave identified as Duffel adapter skeleton
+- [x] Next implementation direction identified as SerpApi MVP verification and rate-limit mitigation
 
 ---
 
@@ -23,6 +24,7 @@ Wave 11 - Provider Replacement Decision
 
 ```text
 WAVE_11 = COMPLETED
-PRIMARY_PROVIDER = DUFFEL
+PRIMARY_PROVIDER = SERPAPI
+HISTORICAL_REFERENCE_PROVIDER = DUFFEL
 AMADEUS = LEGACY_REFERENCE
 ```

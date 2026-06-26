@@ -23,8 +23,8 @@ with manual orchestration.
 ```text
 MVP v1: COMPLETED
 MVP v2: CODE COMPLETE
-MVP v3: WAVE 14 CODE COMPLETE
-NEXT_STEP: WAVE 15 DUFFEL LIVE CREDENTIAL SMOKE TEST
+MVP v3: SERPAPI PATH CURRENT
+NEXT_STEP: SERPAPI MVP VERIFICATION AND RATE-LIMIT MITIGATION
 ```
 
 ---
@@ -599,22 +599,24 @@ Artifacts:
 
 Goal:
 
-Replace Amadeus as the primary real flight provider because the Amadeus Self-Service portal is scheduled for decommissioning on 2026-07-17.
+Replace Amadeus as the primary real flight provider because the Amadeus Self-Service portal is scheduled for decommissioning on 2026-07-17. The current MVP provider direction is SerpApi Google Flights; Duffel remains a reference provider path.
 
 Decision:
 
 ```text
-PRIMARY_PROVIDER = DUFFEL
+PRIMARY_PROVIDER = SERPAPI
 LEGACY_REFERENCE_PROVIDER = AMADEUS
-NEXT_PROVIDER_ADAPTER = DUFFEL
+HISTORICAL_REFERENCE_PROVIDER = DUFFEL
+NEXT_PROVIDER_ADAPTER = SERPAPI
 ```
 
 Rationale:
 
-- Duffel has current official API documentation for flight offer requests.
-- Duffel supports offer request creation through a stable backend API boundary.
-- Duffel has test/live mode concepts that fit the MVP flow.
-- Duffel can be integrated behind the existing backend/serverless proxy pattern.
+- SerpApi Google Flights returned usable live search results for the target MVP route.
+- SerpApi can be integrated behind the existing backend/serverless proxy pattern.
+- SerpApi fits the current normalized flight result and card rendering path.
+- SerpApi has a known rate-limit risk that must be handled as an expected state.
+- Duffel remains useful as a reference adapter/proxy path.
 - Amadeus Self-Service is now a decommissioning risk and should not remain the primary path.
 
 Artifacts:
@@ -777,10 +779,10 @@ Checklist:
 - backend/serverless proxy keeps credentials server-side
 - backend/serverless proxy sends mandatory stopover to Amadeus
 - provider replacement decision completed
-- Duffel adapter skeleton works with mocked responses
-- Duffel backend/serverless proxy works with mocked responses
-- Duffel backend/serverless proxy keeps credentials server-side
-- local Vite dev server can route to Duffel serverless proxy
+- SerpApi adapter works with mocked responses
+- SerpApi backend/serverless proxy works with mocked responses
+- SerpApi backend/serverless proxy keeps credentials server-side
+- local Vite dev server can route to SerpApi serverless proxy
 - real API request flow works with mocked responses
 - loading state works
 - error state works
@@ -797,7 +799,7 @@ Result:
 ```text
 RED TEST v3 = WAVE 14 CODE COMPLETE
 
-Flight Search MVP v3 = READY_FOR_DUFFEL_LIVE_CREDENTIAL_SMOKE_TEST
+Flight Search MVP v3 = READY_FOR_SERPAPI_MVP_VERIFICATION
 
 READY_FOR_WAVE_15
 ```

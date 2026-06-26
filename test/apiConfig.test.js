@@ -35,30 +35,6 @@ test('falls back to mock mode for unsupported API mode', () => {
   });
 });
 
-test('requires a proxy URL for Duffel mode', () => {
-  assert.deepEqual(getApiConfig({ VITE_FLIGHT_API_MODE: 'duffel' }), {
-    mode: 'mock',
-    requestedMode: 'duffel',
-    proxyUrl: '',
-    isRealApiEnabled: false,
-    errors: {
-      proxyUrl: 'Flight API proxy URL is required for Duffel mode.',
-    },
-  });
-});
-
-test('requires a proxy URL for Amadeus mode', () => {
-  assert.deepEqual(getApiConfig({ VITE_FLIGHT_API_MODE: 'amadeus' }), {
-    mode: 'mock',
-    requestedMode: 'amadeus',
-    proxyUrl: '',
-    isRealApiEnabled: false,
-    errors: {
-      proxyUrl: 'Flight API proxy URL is required for Amadeus mode.',
-    },
-  });
-});
-
 test('requires a proxy URL for SerpApi mode', () => {
   assert.deepEqual(getApiConfig({ VITE_FLIGHT_API_MODE: 'serpapi' }), {
     mode: 'mock',
@@ -71,22 +47,6 @@ test('requires a proxy URL for SerpApi mode', () => {
   });
 });
 
-test('enables real API mode when Amadeus mode has a proxy URL', () => {
-  assert.deepEqual(
-    getApiConfig({
-      VITE_FLIGHT_API_MODE: 'amadeus',
-      VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/flights',
-    }),
-    {
-      mode: 'amadeus',
-      requestedMode: 'amadeus',
-      proxyUrl: 'https://example.com/api/flights',
-      isRealApiEnabled: true,
-      errors: {},
-    },
-  );
-});
-
 test('enables real API mode when SerpApi mode has a proxy URL', () => {
   assert.deepEqual(
     getApiConfig({
@@ -97,22 +57,6 @@ test('enables real API mode when SerpApi mode has a proxy URL', () => {
       mode: 'serpapi',
       requestedMode: 'serpapi',
       proxyUrl: 'https://example.com/api/serpapi-flights',
-      isRealApiEnabled: true,
-      errors: {},
-    },
-  );
-});
-
-test('enables real API mode when Duffel mode has a proxy URL', () => {
-  assert.deepEqual(
-    getApiConfig({
-      VITE_FLIGHT_API_MODE: 'duffel',
-      VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/duffel-flights',
-    }),
-    {
-      mode: 'duffel',
-      requestedMode: 'duffel',
-      proxyUrl: 'https://example.com/api/duffel-flights',
       isRealApiEnabled: true,
       errors: {},
     },

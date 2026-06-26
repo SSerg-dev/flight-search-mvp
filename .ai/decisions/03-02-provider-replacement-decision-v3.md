@@ -6,33 +6,50 @@ The Amadeus for Developers Self-Service portal is scheduled for decommissioning 
 
 Wave 10 remains useful as a reference backend/serverless proxy implementation, but Amadeus should no longer be the main real API integration target.
 
+The project later added both Duffel and SerpApi adapter/proxy paths. After live experimentation, SerpApi became the current working MVP provider path because it returned usable Google Flights-style search results for the target route. SerpApi has a known rate-limit risk, so mock mode must remain the default local/test path. Duffel and Amadeus runtime paths were later removed from active code to keep the MVP focused on `mock` and `serpapi`.
+
 ---
 
 # Decision
 
 ```text
-PRIMARY_FLIGHT_PROVIDER = DUFFEL
+PRIMARY_FLIGHT_PROVIDER = SERPAPI
 LEGACY_REFERENCE_PROVIDER = AMADEUS
-NEXT_IMPLEMENTATION_TARGET = DUFFEL_ADAPTER_AND_PROXY
+HISTORICAL_REFERENCE_PROVIDER = DUFFEL
+CURRENT_IMPLEMENTATION_TARGET = SERPAPI_GOOGLE_FLIGHTS_PROXY
 ```
 
 ---
 
 # Rationale
 
-- Duffel has current official API reference documentation for flight offer requests.
-- Duffel uses an offer request model that fits the existing search flow.
-- Duffel can stay behind the existing backend/serverless proxy boundary.
-- Duffel supports test/live mode concepts that fit MVP verification.
-- Amadeus Self-Service should remain as a legacy/reference implementation only.
+- SerpApi Google Flights returned usable live search results for the MVP route and card shape.
+- SerpApi can stay behind the existing backend/serverless proxy boundary.
+- SerpApi works with the current normalized flight offer pipeline.
+- SerpApi has a clear operational caveat: rate limits can interrupt live testing.
+- Duffel remains useful as historical provider research context, but it is not an active runtime provider.
+- Amadeus Self-Service remains historical provider research only.
 
 ---
 
 # Provider Notes
 
+## SerpApi
+
+Selected as the current primary MVP provider path.
+
+Relevant local files:
+
+- `api/serpapi-flights.js`
+- `src/services/adapters/serpapiFlightAdapter.js`
+- `src/services/proxy/serpapiProxyClient.js`
+- `src/services/normalizers/serpapiFlightNormalizer.js`
+- `test/serpapiServerlessProxy.test.js`
+- `test/serpapiFlightNormalizer.test.js`
+
 ## Duffel
 
-Selected as the primary replacement provider.
+Retained as historical provider research context.
 
 Relevant official docs:
 
@@ -41,7 +58,7 @@ Relevant official docs:
 
 ## Amadeus
 
-Moved to legacy/reference status because of Self-Service decommissioning risk.
+Retained as historical provider research only because of Self-Service decommissioning risk.
 
 ## Travelpayouts / Aviasales
 
@@ -57,6 +74,8 @@ Not selected for the primary adapter because public documentation access and cur
 
 ```text
 PROVIDER_REPLACEMENT_DECISION = COMPLETED
-PRIMARY_PROVIDER = DUFFEL
-READY_FOR_DUFFEL_ADAPTER_SKELETON
+PRIMARY_PROVIDER = SERPAPI
+HISTORICAL_REFERENCE_PROVIDER = DUFFEL
+LEGACY_REFERENCE_PROVIDER = AMADEUS
+READY_FOR_SERPAPI_MVP_VERIFICATION
 ```

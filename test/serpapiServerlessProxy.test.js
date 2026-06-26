@@ -191,7 +191,7 @@ test('SerpApi proxy validates request payload before calling SerpApi', async () 
     method: 'POST',
     body: JSON.stringify({
       ...proxyPayload,
-      provider: 'duffel',
+      provider: 'unknown',
     }),
   });
 

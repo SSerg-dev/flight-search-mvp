@@ -4,57 +4,6 @@ import test from 'node:test';
 
 import { createFlightSearchViteConfig } from '../vite.config.js';
 
-test('Vite dev middleware uses server-only Duffel env from loaded env files', async () => {
-  const config = createFlightSearchViteConfig({
-    env: {
-      DUFFEL_ACCESS_TOKEN: 'server-duffel-token',
-      DUFFEL_API_BASE_URL: 'https://duffel.test',
-    },
-    fetchImpl: async (url, init) => ({
-      ok: true,
-      json: async () => ({
-        data: {
-          url,
-          authorization: init.headers.Authorization,
-        },
-      }),
-    }),
-  });
-  const duffelPlugin = config.plugins.find((plugin) => plugin.name === 'flight-search-duffel-api-dev');
-  const middlewareCalls = [];
-
-  duffelPlugin.configureServer({
-    middlewares: {
-      use(middleware) {
-        middlewareCalls.push(middleware);
-      },
-    },
-  });
-
-  const request = createRequest({
-    method: 'POST',
-    url: '/api/duffel-flights',
-    body: JSON.stringify({
-      provider: 'duffel',
-      route: {
-        from: { iata: 'BOS' },
-        via: { iata: 'IST' },
-        to: { iata: 'LED' },
-      },
-      departureDate: '2026-08-01',
-      adults: 1,
-    }),
-  });
-  const response = createResponse();
-
-  await middlewareCalls[0](request, response, () => {
-    throw new Error('next should not be called for Duffel API requests');
-  });
-
-  assert.equal(response.status, 200);
-  assert.equal(JSON.parse(response.body).data.authorization, 'Bearer server-duffel-token');
-});
-
 test('Vite dev middleware uses server-only SerpApi env from loaded env files', async () => {
   const config = createFlightSearchViteConfig({
     env: {
@@ -104,6 +53,16 @@ test('Vite dev middleware uses server-only SerpApi env from loaded env files', a
   const searchUrl = new URL(JSON.parse(response.body).searchUrl);
   assert.equal(searchUrl.origin, 'https://serpapi.test');
   assert.equal(searchUrl.searchParams.get('api_key'), 'server-serpapi-key');
+});
+
+test('Vite config registers only SerpApi API middleware', () => {
+  const config = createFlightSearchViteConfig();
+  const apiPlugins = config.plugins.filter((plugin) => String(plugin.name).includes('flight-search-'));
+
+  assert.deepEqual(
+    apiPlugins.map((plugin) => plugin.name),
+    ['flight-search-serpapi-api-dev'],
+  );
 });
 
 function createRequest({ method, url, body }) {
