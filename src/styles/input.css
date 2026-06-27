@@ -3,11 +3,23 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
-  body {
+  html,
+  body,
+  #app {
+    min-height: 100%;
+  }
+
+  body,
+  #app {
     background-color: #f8fafc;
   }
 
-  .dark body {
+  #app {
+    min-height: 100vh;
+  }
+
+  html.dark body,
+  html.dark #app {
     background-color: #020617;
     color-scheme: dark;
   }
