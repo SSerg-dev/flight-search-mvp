@@ -233,7 +233,10 @@ test('search form renders an accessible theme toggle with current state', () => 
   assert.match(markup, /id="theme-toggle"/);
   assert.match(markup, /aria-label="Switch to light theme"/);
   assert.match(markup, /aria-pressed="true"/);
-  assert.match(markup, /Dark/);
+  assert.match(markup, /aria-hidden="true"/);
+  assert.match(markup, /viewBox="0 0 24 24"/);
+  assert.doesNotMatch(markup, />Dark</);
+  assert.doesNotMatch(markup, />Light</);
 });
 
 test('search form includes dark theme classes for primary surfaces and inputs', () => {
