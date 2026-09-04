@@ -128,7 +128,13 @@ export function createSearchQueryFromFormData(formData) {
   };
 }
 
-export function createSearchForm({ theme = 'light', values = searchFormDefaults, errors = {}, isLoading = false } = {}) {
+export function createSearchForm({
+  theme = 'light',
+  values = searchFormDefaults,
+  errors = {},
+  isLoading = false,
+  savedSearches = [],
+} = {}) {
   const buttonText = isLoading ? 'Searching...' : 'Search Flights';
   const loadingAttributes = isLoading ? 'disabled aria-busy="true"' : 'aria-busy="false"';
 
@@ -233,9 +239,60 @@ export function createSearchForm({ theme = 'light', values = searchFormDefaults,
             </button>
           </div>
         </form>
+        ${createSavedSearchesMarkup(savedSearches)}
       </section>
     </main>
   `;
+}
+
+function createSavedSearchesMarkup(savedSearches) {
+  if (!Array.isArray(savedSearches) || savedSearches.length === 0) {
+    return '';
+  }
+
+  return `
+        <section class="mt-5 grid gap-3 rounded border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900 sm:p-5" aria-label="Recent searches">
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="text-base font-semibold text-slate-950 dark:text-slate-100">Recent searches</h2>
+            <button
+              class="text-sm font-semibold text-slate-600 transition hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:text-slate-300 dark:hover:text-white dark:focus:ring-sky-500"
+              id="clear-saved-searches"
+              type="button"
+            >
+              Clear
+            </button>
+          </div>
+          <div class="grid gap-2">
+            ${savedSearches.map(createSavedSearchButton).join('')}
+          </div>
+        </section>
+  `;
+}
+
+function createSavedSearchButton(savedSearch) {
+  const query = savedSearch.query ?? {};
+  const tripLabel = query.tripType === 'roundTrip' ? 'Round-trip' : 'One-way';
+
+  return `
+            <button
+              class="grid gap-1 rounded border border-slate-200 bg-slate-50 px-3 py-2 text-left transition hover:border-sky-300 hover:bg-sky-50 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:border-slate-700 dark:bg-slate-950 dark:hover:border-sky-600 dark:hover:bg-slate-800 dark:focus:ring-sky-500"
+              type="button"
+              data-saved-search-id="${escapeHtml(savedSearch.id)}"
+            >
+              <span class="text-sm font-semibold text-slate-950 dark:text-slate-100">${escapeHtml(query.from)} to ${escapeHtml(query.to)} via ${escapeHtml(query.via)}</span>
+              <span class="text-sm text-slate-600 dark:text-slate-300">${escapeHtml(tripLabel)} - ${escapeHtml(formatSearchDates(query))} - ${escapeHtml(query.adults)} adults - ${escapeHtml(query.minLayover)}-${escapeHtml(query.maxLayover)}h layover</span>
+            </button>
+  `;
+}
+
+function formatSearchDates(query) {
+  const departureDates = `${query.dateRange?.start ?? ''} to ${query.dateRange?.end ?? ''}`;
+
+  if (query.tripType !== 'roundTrip') {
+    return departureDates;
+  }
+
+  return `${departureDates}, return ${query.returnDateRange?.start ?? ''} to ${query.returnDateRange?.end ?? ''}`;
 }
 
 function createTripTypeControl(tripType) {

@@ -12,6 +12,13 @@ Frontend MVP for searching flights with one mandatory stop.
 
 MVP v3: SerpApi-only provider cleanup.
 
+## Features
+
+- One-way and round-trip searches with one mandatory stop.
+- Date range, passenger count, and layover hour filtering.
+- Recent valid searches are saved in browser `localStorage`, capped to the newest five, and can be restored into the form.
+- Light and dark theme toggle saved in browser `localStorage`.
+
 Automated verification:
 
 - `npm test`

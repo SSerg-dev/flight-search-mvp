@@ -239,6 +239,22 @@ test('search form renders an accessible theme toggle with current state', () => 
   assert.doesNotMatch(markup, />Light</);
 });
 
+test('search form renders saved searches when provided', () => {
+  const markup = searchForm.createSearchForm({
+    savedSearches: [
+      {
+        id: 'search-123',
+        query: searchForm.searchFormDefaults,
+      },
+    ],
+  });
+
+  assert.match(markup, /Recent searches/);
+  assert.match(markup, /data-saved-search-id="search-123"/);
+  assert.match(markup, /Boston to Saint Petersburg via Istanbul/);
+  assert.match(markup, /Clear/);
+});
+
 test('search form includes dark theme classes for primary surfaces and inputs', () => {
   const markup = searchForm.createSearchForm();
 

@@ -4,6 +4,7 @@ import { createSearchResultsMarkup } from './components/searchResults.js';
 import { createSearchStatus } from './components/searchStatus.js';
 import { searchFlightOffers } from './services/flightService.js';
 import { getServiceErrorMessage } from './utils/serviceErrorMessage.js';
+import { clearSavedSearches, getSavedSearches, saveSearch } from './utils/savedSearches.js';
 import { applyTheme, getInitialTheme, getNextTheme, persistTheme } from './utils/theme.js';
 import { validateSearchQuery } from './utils/validation.js';
 
@@ -21,6 +22,7 @@ const appState = {
   isLoading: false,
   serviceError: '',
   sortBy: 'price',
+  savedSearches: getSavedSearches(),
 };
 
 renderApp();
@@ -32,6 +34,7 @@ function renderApp() {
       values: appState.values,
       errors: appState.errors,
       isLoading: appState.isLoading,
+      savedSearches: appState.savedSearches,
     }) +
     createSearchStatus({
       isLoading: appState.isLoading,
@@ -46,6 +49,10 @@ function renderApp() {
 
   form.addEventListener('submit', handleSearchSubmit);
   themeToggle.addEventListener('click', handleThemeToggle);
+  app.querySelectorAll('[data-saved-search-id]').forEach((button) => {
+    button.addEventListener('click', handleSavedSearchSelect);
+  });
+  app.querySelector('#clear-saved-searches')?.addEventListener('click', handleClearSavedSearches);
   form.querySelectorAll('input[name="tripType"]').forEach((input) => {
     input.addEventListener('change', handleTripTypeChange);
   });
@@ -78,6 +85,7 @@ async function handleSearchSubmit(event) {
   appState.lastQuery = query;
   appState.isLoading = true;
   appState.serviceError = '';
+  appState.savedSearches = saveSearch(query);
   renderApp();
 
   try {
@@ -104,6 +112,28 @@ function handleTripTypeChange(event) {
   appState.results = undefined;
   appState.lastQuery = undefined;
   appState.serviceError = '';
+  renderApp();
+}
+
+function handleSavedSearchSelect(event) {
+  const savedSearchId = event.currentTarget.dataset.savedSearchId;
+  const savedSearch = appState.savedSearches.find((search) => search.id === savedSearchId);
+
+  if (!savedSearch) {
+    return;
+  }
+
+  appState.values = savedSearch.query;
+  appState.errors = {};
+  appState.results = undefined;
+  appState.lastQuery = undefined;
+  appState.serviceError = '';
+  renderApp();
+}
+
+function handleClearSavedSearches() {
+  clearSavedSearches();
+  appState.savedSearches = [];
   renderApp();
 }
 
