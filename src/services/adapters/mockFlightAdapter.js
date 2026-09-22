@@ -38,6 +38,8 @@ function priceForPassengerCount(flights, passengerCountValue) {
         amount,
         display: formatPrice(amount, currency),
         passengerCount,
+        perAdultAmount: pricePerAdult,
+        perAdultDisplay: formatPrice(pricePerAdult, currency),
       },
     };
   });

@@ -5,6 +5,7 @@ export function createResultCard(flight) {
     ? flight.airline.flightNumbers.join(' / ')
     : 'Flight details pending';
   const priceDisplay = hasText(flight.price?.display) ? flight.price.display : 'Price unavailable';
+  const priceContext = createPriceContext(flight.price);
   const segmentTimingDisplay = createSegmentTimingDisplay(flight);
   const durationDisplay = createDurationDisplay(flight);
   const departurePeriodBadge = createDeparturePeriodBadge(firstSegment.departure);
@@ -33,11 +34,23 @@ export function createResultCard(flight) {
       <div class="grid gap-1 text-left sm:text-right">
         <p class="text-2xl font-semibold text-slate-950 dark:text-white">${escapeHtml(priceDisplay)}</p>
         <p class="text-sm text-slate-600 dark:text-slate-400">
-          ${escapeHtml(flight.price?.currency)} total for ${escapeHtml(flight.price?.passengerCount)} adults
+          ${escapeHtml(priceContext)}
         </p>
       </div>
     </article>
   `;
+}
+
+function createPriceContext(price = {}) {
+  const passengerCount = Number(price.passengerCount);
+  const passengerLabel = passengerCount === 1 ? 'adult' : 'adults';
+  const totalLabel = `${price.currency ?? ''} total for ${passengerCount} ${passengerLabel}`;
+
+  if (passengerCount > 1 && hasText(price.perAdultDisplay)) {
+    return `${totalLabel} · ${price.perAdultDisplay} per adult`;
+  }
+
+  return totalLabel;
 }
 
 function createDeparturePeriodBadge(dateTime) {

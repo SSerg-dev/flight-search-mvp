@@ -67,7 +67,8 @@ function normalizeResult(result, query = {}) {
   const airlineCode = getAirlineCode(flightNumbers[0]);
   const layoverMinutes = getArray(result?.layovers).reduce((total, layover) => total + Number(layover?.duration ?? 0), 0);
   const totalMinutes = Number(result.total_duration ?? getTotalMinutes(flights, layoverMinutes));
-  const priceAmount = Number(result.price ?? 0);
+  const pricePerAdult = Number(result.price ?? 0);
+  const priceAmount = pricePerAdult * passengerCount;
 
   return {
     id: createId(flights, flightNumbers),
@@ -81,6 +82,8 @@ function normalizeResult(result, query = {}) {
       currency: 'USD',
       display: formatPrice(priceAmount, 'USD'),
       passengerCount,
+      perAdultAmount: pricePerAdult,
+      perAdultDisplay: formatPrice(pricePerAdult, 'USD'),
     },
     route: {
       origin: getRoutePoint(firstFlight.departure_airport, query.from),

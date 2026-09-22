@@ -152,7 +152,8 @@ test('searchFlightOffers returns normalized SerpApi offers through configured pr
 
   assert.equal(results.length, 1);
   assert.equal(results[0].airline.name, 'Turkish Airlines');
-  assert.equal(results[0].price.display, '$713');
+  assert.equal(results[0].price.display, '$1426');
+  assert.equal(results[0].price.perAdultDisplay, '$713');
   assert.equal(results[0].route.stopover.city, 'Istanbul');
 });
 

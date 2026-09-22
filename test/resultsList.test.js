@@ -28,6 +28,23 @@ test('result card renders flight route, airline, price, dates, layover, and dura
   assert.match(markup, /2 adults/);
 });
 
+test('result card distinguishes the group total from the per-adult price', () => {
+  const markup = createResultCard({
+    ...mockFlights[0],
+    price: {
+      amount: 3678,
+      currency: 'USD',
+      display: '$3678',
+      passengerCount: 2,
+      perAdultAmount: 1839,
+      perAdultDisplay: '$1839',
+    },
+  });
+
+  assert.match(markup, /\$3678/);
+  assert.match(markup, /USD total for 2 adults · \$1839 per adult/);
+});
+
 test('result card appends the weekday name only to the Boston departure date', () => {
   const markup = createResultCard({
     ...mockFlights[0],
