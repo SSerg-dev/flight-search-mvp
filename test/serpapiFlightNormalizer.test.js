@@ -84,6 +84,50 @@ test('filters SerpApi results to the requested stopover airport', () => {
   assert.equal(results[0].route.stopover.code, 'IST');
 });
 
+test('deduplicates identical itineraries and keeps the cheapest price', () => {
+  const expensiveOffer = structuredClone(serpapiGoogleFlightsFixture.best_flights[0]);
+  const cheaperOffer = structuredClone(expensiveOffer);
+  cheaperOffer.price = 640;
+
+  const results = normalizeSerpApiFlightResults(
+    {
+      best_flights: [expensiveOffer],
+      other_flights: [cheaperOffer],
+    },
+    { query, currentDate },
+  );
+
+  assert.equal(results.length, 1);
+  assert.equal(results[0].price.amount, 640);
+  assert.equal(results[0].price.display, '$640');
+});
+
+test('keeps same-day offers when any flight segment differs', () => {
+  const firstOffer = structuredClone(serpapiGoogleFlightsFixture.best_flights[0]);
+  const alternateOffer = structuredClone(firstOffer);
+  alternateOffer.price = 900;
+  alternateOffer.flights[1].flight_number = 'TK 399';
+  alternateOffer.flights[1].departure_airport.time = '2026-10-02 19:30';
+  alternateOffer.flights[1].arrival_airport.time = '2026-10-02 23:15';
+  alternateOffer.layovers[0].duration = 320;
+
+  const results = normalizeSerpApiFlightResults(
+    {
+      best_flights: [firstOffer, alternateOffer],
+    },
+    { query, currentDate },
+  );
+
+  assert.equal(results.length, 2);
+  assert.deepEqual(
+    results.map((flight) => flight.airline.flightNumbers),
+    [
+      ['TK82', 'TK401'],
+      ['TK82', 'TK399'],
+    ],
+  );
+});
+
 test('normalizes direct flights when Via is empty', () => {
   const response = {
     best_flights: [

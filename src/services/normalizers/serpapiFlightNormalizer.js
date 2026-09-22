@@ -5,10 +5,46 @@ export function normalizeSerpApiFlightResults(response, { query, currentDate = n
   const results = [...getArray(response?.best_flights), ...getArray(response?.other_flights)];
   const stopoverCode = getKnownAirportCode(query?.viaAirportId || query?.via);
 
-  return results
+  const flights = results
     .filter((result) => hasRequestedStopover(result, stopoverCode))
     .map((result) => normalizeResult(result, query))
     .filter((flight) => isFlightTimingValid(flight, { currentDate }));
+
+  return deduplicateFlightOffers(flights);
+}
+
+function deduplicateFlightOffers(flights) {
+  const uniqueFlights = new Map();
+
+  flights.forEach((flight) => {
+    const key = createItineraryKey(flight);
+    const existingFlight = uniqueFlights.get(key);
+
+    if (!existingFlight || getComparablePrice(flight) < getComparablePrice(existingFlight)) {
+      uniqueFlights.set(key, flight);
+    }
+  });
+
+  return [...uniqueFlights.values()];
+}
+
+function createItineraryKey(flight) {
+  return JSON.stringify({
+    route: [flight.route?.origin?.code, flight.route?.stopover?.code, flight.route?.destination?.code],
+    segments: getArray(flight.segments).map((segment) => [
+      segment.from,
+      segment.to,
+      segment.flightNumber,
+      segment.departure,
+      segment.arrival,
+    ]),
+  });
+}
+
+function getComparablePrice(flight) {
+  const price = Number(flight.price?.amount);
+
+  return Number.isFinite(price) ? price : Number.POSITIVE_INFINITY;
 }
 
 function normalizeResult(result, query = {}) {
