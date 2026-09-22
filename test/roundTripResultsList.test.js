@@ -11,7 +11,7 @@ const cheapOutbound = createFlight({
   origin: 'Boston',
   stopover: 'Istanbul',
   destination: 'Saint Petersburg',
-  departureDate: '2026-08-01',
+  departureDate: '2026-10-01',
 });
 
 const expensiveOutbound = createFlight({
@@ -22,7 +22,7 @@ const expensiveOutbound = createFlight({
   origin: 'Boston',
   stopover: 'Istanbul',
   destination: 'Saint Petersburg',
-  departureDate: '2026-08-02',
+  departureDate: '2026-10-02',
 });
 
 const cheapReturn = createFlight({
@@ -33,7 +33,7 @@ const cheapReturn = createFlight({
   origin: 'Saint Petersburg',
   stopover: 'Istanbul',
   destination: 'Boston',
-  departureDate: '2026-08-20',
+  departureDate: '2026-10-20',
 });
 
 const expensiveReturn = createFlight({
@@ -44,7 +44,7 @@ const expensiveReturn = createFlight({
   origin: 'Saint Petersburg',
   stopover: 'Istanbul',
   destination: 'Boston',
-  departureDate: '2026-08-21',
+  departureDate: '2026-10-21',
 });
 
 test('round-trip results render paired outbound and return cards with a combined price', () => {

@@ -64,8 +64,11 @@ function normalizeSearchQuery(query = {}) {
 
   return {
     tripType: query.tripType === 'roundTrip' ? 'roundTrip' : 'oneWay',
+    fromAirportId: String(query.fromAirportId ?? '').trim(),
     from: String(query.from ?? '').trim(),
+    viaAirportId: String(query.viaAirportId ?? '').trim(),
     via: String(query.via ?? '').trim(),
+    toAirportId: String(query.toAirportId ?? '').trim(),
     to: String(query.to ?? '').trim(),
     departureDate: dateRangeStart,
     dateRange: {

@@ -1,16 +1,20 @@
-export function normalizeSerpApiFlightResults(response, { query } = {}) {
+import { isFlightTimingValid } from '../../utils/dateTime.js';
+import { resolveAirport } from '../airportMetadataService.js';
+
+export function normalizeSerpApiFlightResults(response, { query, currentDate = new Date() } = {}) {
   const results = [...getArray(response?.best_flights), ...getArray(response?.other_flights)];
-  const stopoverCode = getKnownAirportCode(query?.via);
+  const stopoverCode = getKnownAirportCode(query?.viaAirportId || query?.via);
 
   return results
     .filter((result) => hasRequestedStopover(result, stopoverCode))
-    .map((result) => normalizeResult(result, query));
+    .map((result) => normalizeResult(result, query))
+    .filter((flight) => isFlightTimingValid(flight, { currentDate }));
 }
 
 function normalizeResult(result, query = {}) {
   const flights = getArray(result?.flights);
 
-  if (flights.length < 2) {
+  if (flights.length < 1) {
     throw new Error('SerpApi flight result is missing itinerary segments.');
   }
 
@@ -25,7 +29,7 @@ function normalizeResult(result, query = {}) {
   const flightNumbers = flights.map((flight) => formatFlightNumber(flight.flight_number));
   const airlineName = String(firstFlight.airline ?? 'Unknown airline');
   const airlineCode = getAirlineCode(flightNumbers[0]);
-  const layoverMinutes = Number(stopover?.duration ?? 0);
+  const layoverMinutes = getArray(result?.layovers).reduce((total, layover) => total + Number(layover?.duration ?? 0), 0);
   const totalMinutes = Number(result.total_duration ?? getTotalMinutes(flights, layoverMinutes));
   const priceAmount = Number(result.price ?? 0);
 
@@ -44,7 +48,7 @@ function normalizeResult(result, query = {}) {
     },
     route: {
       origin: getRoutePoint(firstFlight.departure_airport, query.from),
-      stopover: getRoutePoint(stopover, query.via),
+      stopover: hasText(stopover?.id) ? getRoutePoint(stopover, query.via) : null,
       destination: getRoutePoint(lastFlight.arrival_airport, query.to),
       departureDate: getDate(firstFlight.departure_airport?.time),
     },
@@ -87,19 +91,19 @@ function hasCompleteFlightTiming(flight) {
 function hasRequestedStopover(result, stopoverCode) {
   const layovers = getArray(result?.layovers);
 
-  if (getArray(result?.flights).length !== 2 || layovers.length !== 1) {
-    return false;
+  if (!hasText(stopoverCode)) {
+    return getArray(result?.flights).length >= 1;
   }
 
-  if (!hasText(stopoverCode)) {
-    return true;
+  if (getArray(result?.flights).length !== 2 || layovers.length !== 1) {
+    return false;
   }
 
   return String(layovers[0]?.id ?? '').toUpperCase() === stopoverCode;
 }
 
 function getStopover(result, firstFlight) {
-  return getArray(result?.layovers)[0] ?? firstFlight?.arrival_airport ?? {};
+  return getArray(result?.layovers)[0] ?? {};
 }
 
 function getRoutePoint(point = {}, fallbackCity = '') {
@@ -123,15 +127,9 @@ function getCityName(code, name, fallbackCity) {
 }
 
 function getKnownAirportCode(value) {
-  const normalized = String(value ?? '').trim().toLowerCase();
-  const knownCodes = {
-    boston: 'BOS',
-    istanbul: 'IST',
-    'saint petersburg': 'LED',
-    'st. petersburg': 'LED',
-  };
+  const airport = resolveAirport(value);
 
-  return knownCodes[normalized] ?? String(value ?? '').trim().toUpperCase();
+  return airport?.iata ?? String(value ?? '').trim().toUpperCase();
 }
 
 function getAirlineCode(flightNumber) {

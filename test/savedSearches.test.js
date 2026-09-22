@@ -10,10 +10,10 @@ const baseQuery = {
   from: 'Boston',
   via: 'Istanbul',
   to: 'Saint Petersburg',
-  departureDate: '2026-08-01',
+  departureDate: '2026-10-01',
   dateRange: {
-    start: '2026-08-01',
-    end: '2026-08-10',
+    start: '2026-10-01',
+    end: '2026-10-10',
   },
   returnDateRange: {
     start: '',
@@ -41,7 +41,7 @@ test('saves the newest search first', () => {
 
   saveSearch(baseQuery, {
     storage,
-    now: createNow('2026-08-01T10:00:00.000Z'),
+    now: createNow('2026-10-01T10:00:00.000Z'),
   });
   const searches = saveSearch(
     {
@@ -50,7 +50,7 @@ test('saves the newest search first', () => {
     },
     {
       storage,
-      now: createNow('2026-08-01T11:00:00.000Z'),
+      now: createNow('2026-10-01T11:00:00.000Z'),
     },
   );
 
@@ -64,7 +64,7 @@ test('deduplicates equivalent searches and moves the latest copy to the top', ()
 
   saveSearch(baseQuery, {
     storage,
-    now: createNow('2026-08-01T10:00:00.000Z'),
+    now: createNow('2026-10-01T10:00:00.000Z'),
   });
   saveSearch(
     {
@@ -73,17 +73,17 @@ test('deduplicates equivalent searches and moves the latest copy to the top', ()
     },
     {
       storage,
-      now: createNow('2026-08-01T11:00:00.000Z'),
+      now: createNow('2026-10-01T11:00:00.000Z'),
     },
   );
   const searches = saveSearch(baseQuery, {
     storage,
-    now: createNow('2026-08-01T12:00:00.000Z'),
+    now: createNow('2026-10-01T12:00:00.000Z'),
   });
 
   assert.equal(searches.length, 2);
   assert.equal(searches[0].query.to, 'Saint Petersburg');
-  assert.equal(searches[0].createdAt, '2026-08-01T12:00:00.000Z');
+  assert.equal(searches[0].createdAt, '2026-10-01T12:00:00.000Z');
 });
 
 test('limits saved searches to the configured max', () => {
@@ -98,7 +98,7 @@ test('limits saved searches to the configured max', () => {
       {
         storage,
         max: 3,
-        now: createNow(`2026-08-01T1${index}:00:00.000Z`),
+        now: createNow(`2026-10-01T1${index}:00:00.000Z`),
       },
     );
   }

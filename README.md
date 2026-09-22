@@ -1,6 +1,6 @@
 # Flight Search Frontend MVP
 
-Frontend MVP for searching flights with one mandatory stop.
+Frontend MVP for searching flights between specific passenger airports, optionally through a selected airport.
 
 ## Stack
 
@@ -14,7 +14,10 @@ MVP v3: SerpApi-only provider cleanup.
 
 ## Features
 
-- One-way and round-trip searches with one mandatory stop.
+- One-way and round-trip searches with an optional selected connection airport.
+- Searchable, keyboard-accessible airport comboboxes match city, country, airport name, IATA code, and available local aliases.
+- Selected airports are stored by stable dataset ID while their readable city labels remain compatible with the flight providers.
+- Departure dates must be valid future dates, and displayed flights must arrive after departure and after the current date.
 - Date range, passenger count, and layover hour filtering.
 - Recent valid searches are saved in browser `localStorage`, capped to the newest five, and can be restored into the form.
 - Light and dark theme toggle saved in browser `localStorage`.
@@ -23,6 +26,18 @@ Automated verification:
 
 - `npm test`
 - `npm run build`
+
+## Airport data
+
+`src/data/airports.js` is a local index of scheduled passenger airports with IATA codes. It is generated from the public-domain [OurAirports](https://ourairports.com/data/) dataset, so the form does not need a network request while the user types.
+
+Refresh the index when airport metadata changes:
+
+```text
+npm run airports:update
+```
+
+The generator keeps the persistent OurAirports ID, IATA and ICAO codes, airport and municipality names, country, coordinates, aliases, and airport type. The generated file should be committed with the application.
 
 ## Configuration
 

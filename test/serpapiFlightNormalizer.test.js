@@ -11,12 +11,14 @@ const query = {
   adults: 2,
 };
 
+const currentDate = new Date('2026-09-04T12:00:00');
+
 test('normalizes SerpApi Google Flights results into the app flight shape', () => {
-  const results = normalizeSerpApiFlightResults(serpapiGoogleFlightsFixture, { query });
+  const results = normalizeSerpApiFlightResults(serpapiGoogleFlightsFixture, { query, currentDate });
 
   assert.equal(results.length, 1);
   assert.deepEqual(results[0], {
-    id: 'serpapi-BOS-IST-LED-2026-08-01 21:35-TK82-TK401',
+    id: 'serpapi-BOS-IST-LED-2026-10-01 21:35-TK82-TK401',
     airline: {
       name: 'Turkish Airlines',
       code: 'TK',
@@ -44,21 +46,21 @@ test('normalizes SerpApi Google Flights results into the app flight shape', () =
         airport: 'Pulkovo Airport',
         code: 'LED',
       },
-      departureDate: '2026-08-01',
+      departureDate: '2026-10-01',
     },
     segments: [
       {
         from: 'Boston',
         to: 'Istanbul',
-        departure: '2026-08-01 21:35',
-        arrival: '2026-08-02 14:25',
+        departure: '2026-10-01 21:35',
+        arrival: '2026-10-02 14:25',
         flightNumber: 'TK82',
       },
       {
         from: 'Istanbul',
         to: 'Saint Petersburg',
-        departure: '2026-08-02 18:55',
-        arrival: '2026-08-03 02:15',
+        departure: '2026-10-02 18:55',
+        arrival: '2026-10-03 02:15',
         flightNumber: 'TK401',
       },
     ],
@@ -76,10 +78,40 @@ test('normalizes SerpApi Google Flights results into the app flight shape', () =
 });
 
 test('filters SerpApi results to the requested stopover airport', () => {
-  const results = normalizeSerpApiFlightResults(serpapiGoogleFlightsFixture, { query });
+  const results = normalizeSerpApiFlightResults(serpapiGoogleFlightsFixture, { query, currentDate });
 
   assert.equal(results.length, 1);
   assert.equal(results[0].route.stopover.code, 'IST');
+});
+
+test('normalizes direct flights when Via is empty', () => {
+  const response = {
+    best_flights: [
+      {
+        price: 500,
+        total_duration: 510,
+        flights: [
+          {
+            departure_airport: { name: 'Logan International Airport', id: 'BOS', time: '2026-10-01 20:00' },
+            arrival_airport: { name: 'Pulkovo Airport', id: 'LED', time: '2026-10-02 10:30' },
+            airline: 'Example Air',
+            flight_number: 'EA 10',
+            duration: 510,
+          },
+        ],
+        layovers: [],
+      },
+    ],
+  };
+
+  const [flight] = normalizeSerpApiFlightResults(response, {
+    query: { ...query, via: '', viaAirportId: '' },
+    currentDate,
+  });
+
+  assert.equal(flight.route.stopover, null);
+  assert.equal(flight.segments.length, 1);
+  assert.equal(flight.duration.layoverMinutes, 0);
 });
 
 test('ignores multi-stop SerpApi results instead of displaying the wrong stopover', () => {
@@ -88,22 +120,22 @@ test('ignores multi-stop SerpApi results instead of displaying the wrong stopove
       {
         flights: [
           {
-            departure_airport: { name: 'Logan International Airport', id: 'BOS', time: '2026-08-01 21:50' },
-            arrival_airport: { name: 'Heathrow Airport', id: 'LHR', time: '2026-08-02 09:00' },
+            departure_airport: { name: 'Logan International Airport', id: 'BOS', time: '2026-10-01 21:50' },
+            arrival_airport: { name: 'Heathrow Airport', id: 'LHR', time: '2026-10-02 09:00' },
             duration: 430,
             airline: 'Turkish Airlines',
             flight_number: 'TK 82',
           },
           {
-            departure_airport: { name: 'Heathrow Airport', id: 'LHR', time: '2026-08-02 12:00' },
-            arrival_airport: { name: 'Istanbul Airport', id: 'IST', time: '2026-08-02 18:00' },
+            departure_airport: { name: 'Heathrow Airport', id: 'LHR', time: '2026-10-02 12:00' },
+            arrival_airport: { name: 'Istanbul Airport', id: 'IST', time: '2026-10-02 18:00' },
             duration: 240,
             airline: 'Turkish Airlines',
             flight_number: 'TK 1980',
           },
           {
-            departure_airport: { name: 'Istanbul Airport', id: 'IST', time: '2026-08-02 19:30' },
-            arrival_airport: { name: 'Pulkovo Airport', id: 'LED', time: '2026-08-02 23:15' },
+            departure_airport: { name: 'Istanbul Airport', id: 'IST', time: '2026-10-02 19:30' },
+            arrival_airport: { name: 'Pulkovo Airport', id: 'LED', time: '2026-10-02 23:15' },
             duration: 225,
             airline: 'Turkish Airlines',
             flight_number: 'TK 399',
@@ -119,7 +151,7 @@ test('ignores multi-stop SerpApi results instead of displaying the wrong stopove
     ],
   };
 
-  const results = normalizeSerpApiFlightResults(response, { query });
+  const results = normalizeSerpApiFlightResults(response, { query, currentDate });
 
   assert.deepEqual(results, []);
 });
@@ -130,15 +162,15 @@ test('normalizes the SerpApi card values from provider durations instead of loca
       {
         flights: [
           {
-            departure_airport: { name: 'Logan International Airport', id: 'BOS', time: '2026-08-01 21:50' },
-            arrival_airport: { name: 'Istanbul Airport', id: 'IST', time: '2026-08-02 14:10' },
+            departure_airport: { name: 'Logan International Airport', id: 'BOS', time: '2026-10-01 21:50' },
+            arrival_airport: { name: 'Istanbul Airport', id: 'IST', time: '2026-10-02 14:10' },
             duration: 560,
             airline: 'Turkish Airlines',
             flight_number: 'TK 82',
           },
           {
-            departure_airport: { name: 'Istanbul Airport', id: 'IST', time: '2026-08-02 19:30' },
-            arrival_airport: { name: 'Pulkovo Airport', id: 'LED', time: '2026-08-02 23:15' },
+            departure_airport: { name: 'Istanbul Airport', id: 'IST', time: '2026-10-02 19:30' },
+            arrival_airport: { name: 'Pulkovo Airport', id: 'LED', time: '2026-10-02 23:15' },
             duration: 225,
             airline: 'Turkish Airlines',
             flight_number: 'TK 399',
@@ -151,7 +183,7 @@ test('normalizes the SerpApi card values from provider durations instead of loca
     ],
   };
 
-  const [result] = normalizeSerpApiFlightResults(response, { query });
+  const [result] = normalizeSerpApiFlightResults(response, { query, currentDate });
 
   assert.equal(result.duration.layoverDisplay, '5h 20m layover');
   assert.equal(result.duration.display, '18h 25m');
@@ -177,4 +209,15 @@ test('throws a controlled error for malformed SerpApi responses', () => {
       message: 'SerpApi flight result is missing itinerary segments.',
     },
   );
+});
+
+test('filters SerpApi results whose arrival is not after departure or today', () => {
+  const arrivalBeforeDeparture = structuredClone(serpapiGoogleFlightsFixture);
+  arrivalBeforeDeparture.best_flights[0].flights[0].arrival_airport.time = '2026-10-01 20:25';
+
+  const sameDayAsCurrentDate = structuredClone(serpapiGoogleFlightsFixture);
+  sameDayAsCurrentDate.best_flights[0].flights[1].arrival_airport.time = '2026-09-04 23:25';
+
+  assert.deepEqual(normalizeSerpApiFlightResults(arrivalBeforeDeparture, { query, currentDate }), []);
+  assert.deepEqual(normalizeSerpApiFlightResults(sameDayAsCurrentDate, { query, currentDate }), []);
 });

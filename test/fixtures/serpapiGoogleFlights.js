@@ -9,12 +9,12 @@ export const serpapiGoogleFlightsFixture = {
           departure_airport: {
             name: 'Logan International Airport',
             id: 'BOS',
-            time: '2026-08-01 21:35',
+            time: '2026-10-01 21:35',
           },
           arrival_airport: {
             name: 'Istanbul Airport',
             id: 'IST',
-            time: '2026-08-02 14:25',
+            time: '2026-10-02 14:25',
           },
           duration: 650,
           airline: 'Turkish Airlines',
@@ -24,12 +24,12 @@ export const serpapiGoogleFlightsFixture = {
           departure_airport: {
             name: 'Istanbul Airport',
             id: 'IST',
-            time: '2026-08-02 18:55',
+            time: '2026-10-02 18:55',
           },
           arrival_airport: {
             name: 'Pulkovo Airport',
             id: 'LED',
-            time: '2026-08-03 02:15',
+            time: '2026-10-03 02:15',
           },
           duration: 440,
           airline: 'Turkish Airlines',
@@ -55,12 +55,12 @@ export const serpapiGoogleFlightsFixture = {
           departure_airport: {
             name: 'Logan International Airport',
             id: 'BOS',
-            time: '2026-08-01 08:00',
+            time: '2026-10-01 08:00',
           },
           arrival_airport: {
             name: 'Heathrow Airport',
             id: 'LHR',
-            time: '2026-08-01 20:00',
+            time: '2026-10-01 20:00',
           },
           duration: 420,
           airline: 'British Airways',
@@ -70,12 +70,12 @@ export const serpapiGoogleFlightsFixture = {
           departure_airport: {
             name: 'Heathrow Airport',
             id: 'LHR',
-            time: '2026-08-01 22:00',
+            time: '2026-10-01 22:00',
           },
           arrival_airport: {
             name: 'Pulkovo Airport',
             id: 'LED',
-            time: '2026-08-02 05:00',
+            time: '2026-10-02 05:00',
           },
           duration: 240,
           airline: 'British Airways',

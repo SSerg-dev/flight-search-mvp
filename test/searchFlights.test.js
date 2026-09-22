@@ -8,15 +8,17 @@ const baseQuery = {
   from: 'Boston',
   via: 'Istanbul',
   to: 'Saint Petersburg',
-  departureDate: '2026-08-01',
+  departureDate: '2026-10-01',
   dateRange: {
-    start: '2026-08-01',
-    end: '2026-08-10',
+    start: '2026-10-01',
+    end: '2026-10-10',
   },
   adults: 2,
   minLayover: 3,
   maxLayover: 12,
 };
+
+const currentDate = new Date('2026-09-04T12:00:00');
 
 test('mock flights include realistic Boston to Saint Petersburg options through Istanbul', () => {
   assert.ok(mockFlights.length >= 3);
@@ -53,7 +55,7 @@ test('mock flights expose an API-like nested data model', () => {
 });
 
 test('searchFlights matches route, date range, adults, and layover range', () => {
-  const results = searchFlights(baseQuery, mockFlights);
+  const results = searchFlights(baseQuery, mockFlights, { currentDate });
 
   assert.ok(results.length >= 2);
   assert.ok(results.every((flight) => flight.route.origin.city === baseQuery.from));
@@ -74,7 +76,26 @@ test('searchFlights returns an empty list when no mock flights match', () => {
       maxLayover: 18,
     },
     mockFlights,
+    { currentDate },
   );
+
+  assert.deepEqual(results, []);
+});
+
+test('searchFlights filters out flights with invalid arrival timing', () => {
+  const invalidFlight = {
+    ...mockFlights[0],
+    id: 'invalid-arrival-before-departure',
+    segments: [
+      {
+        ...mockFlights[0].segments[0],
+        departure: '2026-10-01 21:35',
+        arrival: '2026-10-01 20:25',
+      },
+    ],
+  };
+
+  const results = searchFlights(baseQuery, [invalidFlight], { currentDate });
 
   assert.deepEqual(results, []);
 });

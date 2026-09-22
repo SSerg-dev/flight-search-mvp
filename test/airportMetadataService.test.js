@@ -1,21 +1,23 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { findAirportByIata, searchAirports } from '../src/services/airportMetadataService.js';
+import {
+  findAirportById,
+  findAirportByIata,
+  formatAirportOptionValue,
+  resolveAirport,
+  searchAirports,
+} from '../src/services/airportMetadataService.js';
 
 test('findAirportByIata returns airport metadata for an IATA code', () => {
   const airport = findAirportByIata('bos');
 
-  assert.deepEqual(airport, {
-    id: 'bos-general-edward-lawrence-logan-international-airport',
-    iata: 'BOS',
-    name: 'General Edward Lawrence Logan International Airport',
-    city: 'Boston',
-    country: 'United States',
-    latitude: 42.3643,
-    longitude: -71.0052,
-    aliases: ['Boston Logan', 'Logan Airport'],
-  });
+  assert.equal(airport.id, 'oa:3422');
+  assert.equal(airport.iata, 'BOS');
+  assert.equal(airport.icao, 'KBOS');
+  assert.equal(airport.city, 'Boston');
+  assert.equal(airport.country, 'United States');
+  assert.equal(findAirportById(airport.id), airport);
 });
 
 test('findAirportByIata returns null for missing or unknown codes', () => {
@@ -27,7 +29,8 @@ test('searchAirports matches city, airport name, IATA code, country, and aliases
   assert.equal(searchAirports('Boston')[0].iata, 'BOS');
   assert.equal(searchAirports('istanbul airport')[0].iata, 'IST');
   assert.equal(searchAirports('LED')[0].iata, 'LED');
-  assert.equal(searchAirports('Russia')[0].iata, 'LED');
+  assert.ok(searchAirports('Russia').some((airport) => airport.country === 'Russia'));
+  assert.equal(searchAirports('Санкт-Петербург')[0].iata, 'LED');
   assert.equal(searchAirports('Pulkovo')[0].iata, 'LED');
 });
 
@@ -43,6 +46,22 @@ test('searchAirports supports deterministic result limits', () => {
   assert.equal(results.length, 2);
   assert.deepEqual(
     results.map((airport) => airport.iata),
-    ['BOS', 'IST'],
+    ['AAL', 'ABZ'],
   );
+});
+
+test('formatAirportOptionValue creates an IATA-aware selection label', () => {
+  const airport = findAirportByIata('BOS');
+
+  assert.equal(
+    formatAirportOptionValue(airport),
+    'BOS — Logan International Airport, Boston, United States',
+  );
+});
+
+test('resolveAirport recognizes city names, IATA codes, and formatted selection labels', () => {
+  assert.equal(resolveAirport('Boston').iata, 'BOS');
+  assert.equal(resolveAirport('ist').iata, 'IST');
+  assert.equal(resolveAirport('Saint Petersburg - LED - Pulkovo Airport').iata, 'LED');
+  assert.equal(resolveAirport('Unknown Airport'), null);
 });

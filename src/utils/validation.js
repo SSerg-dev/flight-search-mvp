@@ -1,16 +1,27 @@
-export function validateSearchQuery(query) {
+import { findAirportById, resolveAirport } from '../services/airportMetadataService.js';
+import { isDateAfterToday, parseDateOnly } from './dateTime.js';
+
+export function validateSearchQuery(query, { currentDate = new Date() } = {}) {
   const errors = {};
 
   if (!hasText(query?.from)) {
     errors.from = 'From is required.';
   }
 
-  if (!hasText(query?.via)) {
-    errors.via = 'Via is required.';
-  }
-
   if (!hasText(query?.to)) {
     errors.to = 'To is required.';
+  }
+
+  if (!errors.from && !resolveRouteAirport(query, 'from')) {
+    errors.from = 'Choose a supported From airport.';
+  }
+
+  if (hasText(query?.via) && !resolveRouteAirport(query, 'via')) {
+    errors.via = 'Choose a supported Via airport.';
+  }
+
+  if (!errors.to && !resolveRouteAirport(query, 'to')) {
+    errors.to = 'Choose a supported To airport.';
   }
 
   if (!hasText(query?.dateRange?.start) || !hasText(query?.dateRange?.end)) {
@@ -41,8 +52,20 @@ export function validateSearchQuery(query) {
     errors.adults = 'Adults must be at least 1.';
   }
 
+  if (!errors.dateRange && (!parseDateOnly(query.dateRange.start) || !parseDateOnly(query.dateRange.end))) {
+    errors.dateRange = 'Date Range must use valid dates.';
+  }
+
+  if (!errors.returnDateRange && isRoundTrip(query) && (!parseDateOnly(query.returnDateRange.start) || !parseDateOnly(query.returnDateRange.end))) {
+    errors.returnDateRange = 'Return Date Range must use valid dates.';
+  }
+
   if (!errors.dateRange && query.dateRange.start > query.dateRange.end) {
     errors.dateRange = 'Date Range start date must be before or equal to end date.';
+  }
+
+  if (!errors.dateRange && !isDateAfterToday(query.dateRange.start, currentDate)) {
+    errors.dateRange = 'Departure Date Start must be after today.';
   }
 
   if (!errors.returnDateRange && isRoundTrip(query) && query.returnDateRange.start > query.returnDateRange.end) {
@@ -72,7 +95,14 @@ function isRoundTrip(query) {
 }
 
 function hasDuplicateRoutePoint(query) {
-  const routePoints = [query.from, query.via, query.to].map((value) => value.trim().toLowerCase());
+  const routePoints = ['from', 'via', 'to']
+    .map((fieldName) => query?.[`${fieldName}AirportId`] || query?.[fieldName])
+    .map((value) => String(value ?? '').trim().toLowerCase())
+    .filter(Boolean);
 
   return new Set(routePoints).size !== routePoints.length;
+}
+
+function resolveRouteAirport(query, fieldName) {
+  return findAirportById(query?.[`${fieldName}AirportId`]) ?? resolveAirport(query?.[fieldName]);
 }

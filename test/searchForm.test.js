@@ -6,8 +6,11 @@ import * as searchForm from '../src/components/searchForm.js';
 test('search form exposes the approved Wave 2 data model fields', () => {
   assert.deepEqual(Object.keys(searchForm.searchFormDefaults ?? {}), [
     'tripType',
+    'fromAirportId',
     'from',
+    'viaAirportId',
     'via',
+    'toAirportId',
     'to',
     'departureDate',
     'dateRange',
@@ -42,9 +45,12 @@ test('search form renders all approved fields and the submit button', () => {
     assert.match(markup, new RegExp(text));
   });
 
-  assert.match(markup, /name="from"/);
-  assert.match(markup, /name="via"/);
-  assert.match(markup, /name="to"/);
+  assert.match(markup, /name="fromAirportId"/);
+  assert.match(markup, /name="fromSearch"/);
+  assert.match(markup, /name="viaAirportId"/);
+  assert.match(markup, /name="viaSearch"/);
+  assert.match(markup, /name="toAirportId"/);
+  assert.match(markup, /name="toSearch"/);
   assert.match(markup, /name="dateRangeStart"/);
   assert.match(markup, /name="dateRangeEnd"/);
   assert.match(markup, /name="adults"/);
@@ -66,8 +72,8 @@ test('search form shows return date fields for round trips', () => {
       ...searchForm.searchFormDefaults,
       tripType: 'roundTrip',
       returnDateRange: {
-        start: '2026-08-20',
-        end: '2026-08-25',
+        start: '2026-10-20',
+        end: '2026-10-25',
       },
     },
   });
@@ -76,25 +82,26 @@ test('search form shows return date fields for round trips', () => {
   assert.match(markup, /Return Date End/);
   assert.match(markup, /name="returnDateRangeStart"/);
   assert.match(markup, /name="returnDateRangeEnd"/);
-  assert.match(markup, /value="2026-08-20"/);
-  assert.match(markup, /value="2026-08-25"/);
+  assert.match(markup, /value="2026-10-20"/);
+  assert.match(markup, /value="2026-10-25"/);
 });
 
-test('search form connects route fields to airport suggestions', () => {
+test('search form renders accessible airport comboboxes', () => {
   const markup = searchForm.createSearchForm();
 
-  assert.match(markup, /id="from"[\s\S]*list="airport-suggestions"/);
-  assert.match(markup, /id="via"[\s\S]*list="airport-suggestions"/);
-  assert.match(markup, /id="to"[\s\S]*list="airport-suggestions"/);
+  assert.match(markup, /id="from"[\s\S]*role="combobox"[\s\S]*aria-controls="from-options"/);
+  assert.match(markup, /id="via"[\s\S]*role="combobox"[\s\S]*aria-controls="via-options"/);
+  assert.match(markup, /id="to"[\s\S]*role="combobox"[\s\S]*aria-controls="to-options"/);
+  assert.match(markup, /Via[\s\S]*Optional/);
 });
 
-test('search form renders airport suggestions with city, IATA, and airport name', () => {
+test('search form renders selected airports with IATA, name, city, and country', () => {
   const markup = searchForm.createSearchForm();
 
-  assert.match(markup, /<datalist id="airport-suggestions">/);
-  assert.match(markup, /value="Boston"[\s\S]*label="BOS - General Edward Lawrence Logan International Airport"/);
-  assert.match(markup, /value="Istanbul"[\s\S]*label="IST - Istanbul Airport"/);
-  assert.match(markup, /value="Saint Petersburg"[\s\S]*label="LED - Pulkovo Airport"/);
+  assert.match(markup, /value="BOS — Logan International Airport, Boston, United States"/);
+  assert.match(markup, /value="IST — Istanbul Airport, Istanbul, Turkey"/);
+  assert.match(markup, /value="LED — Pulkovo Airport, Saint Petersburg, Russia"/);
+  assert.doesNotMatch(markup, /<datalist/);
 });
 
 test('search form renders validation errors near related fields', () => {
@@ -120,13 +127,55 @@ test('creates the Wave 3 search query shape from submitted form data', () => {
   formData.set('via', 'Istanbul');
   formData.set('to', 'Saint Petersburg');
   formData.set('tripType', 'oneWay');
-  formData.set('dateRangeStart', '2026-08-01');
-  formData.set('dateRangeEnd', '2026-08-10');
+  formData.set('dateRangeStart', '2026-10-01');
+  formData.set('dateRangeEnd', '2026-10-10');
   formData.set('adults', '2');
   formData.set('minLayover', '3');
   formData.set('maxLayover', '12');
 
   assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), searchForm.searchFormDefaults);
+});
+
+test('normalizes selected IATA-aware airport labels into route city values', () => {
+  const formData = new FormData();
+
+  formData.set('from', 'Boston - BOS - General Edward Lawrence Logan International Airport');
+  formData.set('via', 'Istanbul - IST - Istanbul Airport');
+  formData.set('to', 'Saint Petersburg - LED - Pulkovo Airport');
+  formData.set('tripType', 'oneWay');
+  formData.set('dateRangeStart', '2026-10-01');
+  formData.set('dateRangeEnd', '2026-10-10');
+  formData.set('adults', '2');
+  formData.set('minLayover', '3');
+  formData.set('maxLayover', '12');
+
+  assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), searchForm.searchFormDefaults);
+});
+
+test('stores stable airport IDs and allows Via to be empty', () => {
+  const formData = new FormData();
+
+  formData.set('fromAirportId', 'oa:3422');
+  formData.set('fromSearch', 'BOS — Logan International Airport, Boston, United States');
+  formData.set('viaAirportId', '');
+  formData.set('viaSearch', '');
+  formData.set('toAirportId', 'oa:6489');
+  formData.set('toSearch', 'LED — Pulkovo Airport, Saint Petersburg, Russia');
+  formData.set('tripType', 'oneWay');
+  formData.set('dateRangeStart', '2026-10-01');
+  formData.set('dateRangeEnd', '2026-10-10');
+  formData.set('adults', '2');
+  formData.set('minLayover', '3');
+  formData.set('maxLayover', '12');
+
+  const query = searchForm.createSearchQueryFromFormData(formData);
+
+  assert.equal(query.fromAirportId, 'oa:3422');
+  assert.equal(query.from, 'Boston');
+  assert.equal(query.viaAirportId, '');
+  assert.equal(query.via, '');
+  assert.equal(query.toAirportId, 'oa:6489');
+  assert.equal(query.to, 'Saint Petersburg');
 });
 
 test('creates a round-trip search query shape from submitted form data', () => {
@@ -136,10 +185,10 @@ test('creates a round-trip search query shape from submitted form data', () => {
   formData.set('from', 'Boston');
   formData.set('via', 'Istanbul');
   formData.set('to', 'Saint Petersburg');
-  formData.set('dateRangeStart', '2026-08-01');
-  formData.set('dateRangeEnd', '2026-08-10');
-  formData.set('returnDateRangeStart', '2026-08-20');
-  formData.set('returnDateRangeEnd', '2026-08-25');
+  formData.set('dateRangeStart', '2026-10-01');
+  formData.set('dateRangeEnd', '2026-10-10');
+  formData.set('returnDateRangeStart', '2026-10-20');
+  formData.set('returnDateRangeEnd', '2026-10-25');
   formData.set('adults', '2');
   formData.set('minLayover', '3');
   formData.set('maxLayover', '12');
@@ -148,8 +197,8 @@ test('creates a round-trip search query shape from submitted form data', () => {
     ...searchForm.searchFormDefaults,
     tripType: 'roundTrip',
     returnDateRange: {
-      start: '2026-08-20',
-      end: '2026-08-25',
+      start: '2026-10-20',
+      end: '2026-10-25',
     },
   });
 });
@@ -161,8 +210,8 @@ test('airport suggestions do not change submitted route text values', () => {
   formData.set('via', 'Istanbul');
   formData.set('to', 'Saint Petersburg');
   formData.set('tripType', 'oneWay');
-  formData.set('dateRangeStart', '2026-08-01');
-  formData.set('dateRangeEnd', '2026-08-10');
+  formData.set('dateRangeStart', '2026-10-01');
+  formData.set('dateRangeEnd', '2026-10-10');
   formData.set('adults', '2');
   formData.set('minLayover', '3');
   formData.set('maxLayover', '12');
@@ -178,14 +227,15 @@ test('escapes submitted values and validation messages before rendering', () => 
   const markup = searchForm.createSearchForm({
     values: {
       ...searchForm.searchFormDefaults,
-      from: '"<Boston>"',
+      fromAirportId: '',
+      from: '"<Unsafe>"',
     },
     errors: {
       from: 'Use "Boston" <only>.',
     },
   });
 
-  assert.match(markup, /value="&quot;&lt;Boston&gt;&quot;"/);
+  assert.match(markup, /value="&quot;&lt;Unsafe&gt;&quot;"/);
   assert.match(markup, /Use &quot;Boston&quot; &lt;only&gt;\./);
 });
 
@@ -251,7 +301,7 @@ test('search form renders saved searches when provided', () => {
 
   assert.match(markup, /Recent searches/);
   assert.match(markup, /data-saved-search-id="search-123"/);
-  assert.match(markup, /Boston to Saint Petersburg via Istanbul/);
+  assert.match(markup, /Boston to Istanbul to Saint Petersburg/);
   assert.match(markup, /Clear/);
 });
 

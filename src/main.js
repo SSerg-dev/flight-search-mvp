@@ -3,6 +3,7 @@ import { createSearchForm, createSearchQueryFromFormData, searchFormDefaults } f
 import { createSearchResultsMarkup } from './components/searchResults.js';
 import { createSearchStatus } from './components/searchStatus.js';
 import { searchFlightOffers } from './services/flightService.js';
+import { formatAirportOptionValue, searchAirports } from './services/airportMetadataService.js';
 import { getServiceErrorMessage } from './utils/serviceErrorMessage.js';
 import { clearSavedSearches, getSavedSearches, saveSearch } from './utils/savedSearches.js';
 import { applyTheme, getInitialTheme, getNextTheme, persistTheme } from './utils/theme.js';
@@ -48,6 +49,7 @@ function renderApp() {
   const themeToggle = app.querySelector('#theme-toggle');
 
   form.addEventListener('submit', handleSearchSubmit);
+  initializeAirportComboboxes(form);
   themeToggle.addEventListener('click', handleThemeToggle);
   app.querySelectorAll('[data-saved-search-id]').forEach((button) => {
     button.addEventListener('click', handleSavedSearchSelect);
@@ -59,6 +61,131 @@ function renderApp() {
   app.querySelectorAll('select[name="sortBy"]').forEach((select) => {
     select.addEventListener('change', handleSortChange);
   });
+}
+
+function initializeAirportComboboxes(form) {
+  form.querySelectorAll('[data-airport-combobox]').forEach((root) => {
+    const input = root.querySelector('[role="combobox"]');
+    const hiddenInput = root.querySelector('input[type="hidden"]');
+    const listbox = root.querySelector('[role="listbox"]');
+    let results = [];
+    let activeIndex = -1;
+
+    input.addEventListener('input', () => {
+      hiddenInput.value = '';
+      updateResults();
+    });
+    input.addEventListener('focus', () => {
+      input.select();
+      updateResults();
+    });
+    input.addEventListener('blur', () => {
+      window.setTimeout(closeListbox, 100);
+    });
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        moveActiveOption(event.key === 'ArrowDown' ? 1 : -1);
+      } else if (event.key === 'Enter' && activeIndex >= 0) {
+        event.preventDefault();
+        selectAirport(results[activeIndex]);
+      } else if (event.key === 'Escape') {
+        closeListbox();
+      }
+    });
+
+    function updateResults() {
+      results = searchAirports(input.value, { limit: 8 });
+      activeIndex = results.length > 0 ? 0 : -1;
+      renderOptions();
+    }
+
+    function renderOptions() {
+      listbox.replaceChildren();
+
+      if (!input.value.trim()) {
+        closeListbox();
+        return;
+      }
+
+      if (results.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.className = 'px-3 py-2 text-sm font-normal text-slate-500 dark:text-slate-400';
+        emptyMessage.textContent = 'No passenger airports found';
+        listbox.append(emptyMessage);
+      } else {
+        results.forEach((airport, index) => {
+          const option = document.createElement('button');
+          const code = document.createElement('span');
+          const details = document.createElement('span');
+          const airportName = document.createElement('span');
+          const location = document.createElement('span');
+
+          option.type = 'button';
+          option.id = `${input.id}-option-${index}`;
+          option.className = getAirportOptionClass(index === activeIndex);
+          option.setAttribute('role', 'option');
+          option.setAttribute('aria-selected', String(index === activeIndex));
+          code.className = 'rounded bg-sky-50 px-2 py-1 text-xs font-bold text-sky-700 dark:bg-sky-400/10 dark:text-sky-300';
+          code.textContent = airport.iata;
+          details.className = 'min-w-0';
+          airportName.className = 'block truncate font-semibold text-slate-900 dark:text-slate-100';
+          airportName.textContent = airport.name;
+          location.className = 'block truncate text-xs font-normal text-slate-500 dark:text-slate-400';
+          location.textContent = `${airport.city}, ${airport.country}`;
+          details.append(airportName, location);
+          option.append(code, details);
+          option.addEventListener('mousedown', (event) => event.preventDefault());
+          option.addEventListener('click', () => selectAirport(airport));
+          listbox.append(option);
+        });
+      }
+
+      listbox.classList.remove('hidden');
+      input.setAttribute('aria-expanded', 'true');
+      updateActiveDescendant();
+    }
+
+    function moveActiveOption(direction) {
+      if (results.length === 0) {
+        updateResults();
+        return;
+      }
+
+      activeIndex = (activeIndex + direction + results.length) % results.length;
+      renderOptions();
+      listbox.querySelector(`#${input.id}-option-${activeIndex}`)?.scrollIntoView({ block: 'nearest' });
+    }
+
+    function selectAirport(airport) {
+      hiddenInput.value = airport.id;
+      input.value = formatAirportOptionValue(airport);
+      closeListbox();
+    }
+
+    function closeListbox() {
+      listbox.classList.add('hidden');
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+    }
+
+    function updateActiveDescendant() {
+      if (activeIndex < 0) {
+        input.removeAttribute('aria-activedescendant');
+        return;
+      }
+
+      input.setAttribute('aria-activedescendant', `${input.id}-option-${activeIndex}`);
+    }
+  });
+}
+
+function getAirportOptionClass(isActive) {
+  const base = 'grid w-full grid-cols-[auto_1fr] items-center gap-3 rounded px-2 py-2 text-left text-sm';
+
+  return isActive
+    ? `${base} bg-sky-50 dark:bg-sky-400/10`
+    : `${base} hover:bg-slate-50 dark:hover:bg-slate-800`;
 }
 
 async function handleSearchSubmit(event) {

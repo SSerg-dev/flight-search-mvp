@@ -8,6 +8,9 @@ export function createResultCard(flight) {
   const segmentTimingDisplay = createSegmentTimingDisplay(flight);
   const durationDisplay = createDurationDisplay(flight);
   const departurePeriodBadge = createDeparturePeriodBadge(firstSegment.departure);
+  const routeDisplay = [flight.route?.origin?.city, flight.route?.stopover?.city, flight.route?.destination?.city]
+    .filter(hasText)
+    .join(' to ');
 
   return `
     <article class="grid gap-4 rounded border border-slate-200 bg-white p-4 shadow-sm transition hover:border-sky-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-sky-600 sm:grid-cols-[1fr_auto] sm:items-start sm:p-5">
@@ -19,7 +22,7 @@ export function createResultCard(flight) {
 
         <div class="grid gap-2 text-sm text-slate-700 dark:text-slate-300">
           <p class="font-medium text-slate-900 dark:text-slate-100">
-            ${escapeHtml(flight.route?.origin?.city)} to ${escapeHtml(flight.route?.stopover?.city)} to ${escapeHtml(flight.route?.destination?.city)}
+            ${escapeHtml(routeDisplay)}
           </p>
           ${departurePeriodBadge}
           ${segmentTimingDisplay}
@@ -107,6 +110,10 @@ function createSegmentTimingLine(segment, index) {
 function createDurationDisplay(flight) {
   if (!hasText(flight.duration?.display)) {
     return '<p>Duration details pending</p>';
+  }
+
+  if (!hasText(flight.route?.stopover?.city)) {
+    return `<p class="font-semibold text-slate-900 dark:text-slate-100">${escapeHtml(flight.duration.display)}</p>`;
   }
 
   if (flight.duration?.scheduleAdjusted) {

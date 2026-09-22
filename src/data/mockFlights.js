@@ -1,6 +1,6 @@
 export const mockFlights = [
   {
-    id: 'bos-ist-led-2026-08-01-tk',
+    id: 'bos-ist-led-2026-10-01-tk',
     airline: {
       name: 'Turkish Airlines',
       code: 'TK',
@@ -28,21 +28,21 @@ export const mockFlights = [
         airport: 'Pulkovo Airport',
         code: 'LED',
       },
-      departureDate: '2026-08-01',
+      departureDate: '2026-10-01',
     },
     segments: [
       {
         from: 'Boston',
         to: 'Istanbul',
-        departure: '2026-08-01 21:35',
-        arrival: '2026-08-02 14:25',
+        departure: '2026-10-01 21:35',
+        arrival: '2026-10-02 14:25',
         flightNumber: 'TK82',
       },
       {
         from: 'Istanbul',
         to: 'Saint Petersburg',
-        departure: '2026-08-02 18:55',
-        arrival: '2026-08-03 02:15',
+        departure: '2026-10-02 18:55',
+        arrival: '2026-10-03 02:15',
         flightNumber: 'TK401',
       },
     ],
@@ -58,7 +58,7 @@ export const mockFlights = [
     },
   },
   {
-    id: 'bos-ist-led-2026-08-04-tk',
+    id: 'bos-ist-led-2026-10-04-tk',
     airline: {
       name: 'Turkish Airlines',
       code: 'TK',
@@ -86,21 +86,21 @@ export const mockFlights = [
         airport: 'Pulkovo Airport',
         code: 'LED',
       },
-      departureDate: '2026-08-04',
+      departureDate: '2026-10-04',
     },
     segments: [
       {
         from: 'Boston',
         to: 'Istanbul',
-        departure: '2026-08-04 22:10',
-        arrival: '2026-08-05 15:05',
+        departure: '2026-10-04 22:10',
+        arrival: '2026-10-05 15:05',
         flightNumber: 'TK82',
       },
       {
         from: 'Istanbul',
         to: 'Saint Petersburg',
-        departure: '2026-08-05 22:05',
-        arrival: '2026-08-06 04:05',
+        departure: '2026-10-05 22:05',
+        arrival: '2026-10-06 04:05',
         flightNumber: 'TK403',
       },
     ],
@@ -116,7 +116,7 @@ export const mockFlights = [
     },
   },
   {
-    id: 'bos-ist-led-2026-08-08-tk',
+    id: 'bos-ist-led-2026-10-08-tk',
     airline: {
       name: 'Turkish Airlines',
       code: 'TK',
@@ -144,21 +144,21 @@ export const mockFlights = [
         airport: 'Pulkovo Airport',
         code: 'LED',
       },
-      departureDate: '2026-08-08',
+      departureDate: '2026-10-08',
     },
     segments: [
       {
         from: 'Boston',
         to: 'Istanbul',
-        departure: '2026-08-08 20:45',
-        arrival: '2026-08-09 13:20',
+        departure: '2026-10-08 20:45',
+        arrival: '2026-10-09 13:20',
         flightNumber: 'TK84',
       },
       {
         from: 'Istanbul',
         to: 'Saint Petersburg',
-        departure: '2026-08-09 23:35',
-        arrival: '2026-08-10 01:30',
+        departure: '2026-10-09 23:35',
+        arrival: '2026-10-10 01:30',
         flightNumber: 'TK405',
       },
     ],
@@ -174,7 +174,7 @@ export const mockFlights = [
     },
   },
   {
-    id: 'bos-ist-led-2026-08-11-tk',
+    id: 'bos-ist-led-2026-10-11-tk',
     airline: {
       name: 'Turkish Airlines',
       code: 'TK',
@@ -202,21 +202,21 @@ export const mockFlights = [
         airport: 'Pulkovo Airport',
         code: 'LED',
       },
-      departureDate: '2026-08-11',
+      departureDate: '2026-10-11',
     },
     segments: [
       {
         from: 'Boston',
         to: 'Istanbul',
-        departure: '2026-08-11 21:35',
-        arrival: '2026-08-12 14:25',
+        departure: '2026-10-11 21:35',
+        arrival: '2026-10-12 14:25',
         flightNumber: 'TK82',
       },
       {
         from: 'Istanbul',
         to: 'Saint Petersburg',
-        departure: '2026-08-12 18:55',
-        arrival: '2026-08-13 02:15',
+        departure: '2026-10-12 18:55',
+        arrival: '2026-10-13 02:15',
         flightNumber: 'TK401',
       },
     ],
@@ -232,7 +232,7 @@ export const mockFlights = [
     },
   },
   {
-    id: 'bos-lhr-led-2026-08-05-ba',
+    id: 'bos-lhr-led-2026-10-05-ba',
     airline: {
       name: 'British Airways',
       code: 'BA',
@@ -260,21 +260,21 @@ export const mockFlights = [
         airport: 'Pulkovo Airport',
         code: 'LED',
       },
-      departureDate: '2026-08-05',
+      departureDate: '2026-10-05',
     },
     segments: [
       {
         from: 'Boston',
         to: 'London',
-        departure: '2026-08-05 19:15',
-        arrival: '2026-08-06 06:45',
+        departure: '2026-10-05 19:15',
+        arrival: '2026-10-06 06:45',
         flightNumber: 'BA238',
       },
       {
         from: 'London',
         to: 'Saint Petersburg',
-        departure: '2026-08-06 10:30',
-        arrival: '2026-08-06 21:40',
+        departure: '2026-10-06 10:30',
+        arrival: '2026-10-06 21:40',
         flightNumber: 'BA878',
       },
     ],

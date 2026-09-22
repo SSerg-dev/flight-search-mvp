@@ -20,10 +20,10 @@ const proxyPayload = {
       iata: 'LED',
     },
   },
-  departureDate: '2026-08-01',
+  departureDate: '2026-10-01',
   dateRange: {
-    start: '2026-08-01',
-    end: '2026-08-01',
+    start: '2026-10-01',
+    end: '2026-10-01',
   },
   adults: 2,
   layover: {
@@ -95,12 +95,38 @@ test('SerpApi proxy requests Google Flights one-way results', async () => {
   assert.equal(url.searchParams.get('type'), '2');
   assert.equal(url.searchParams.get('departure_id'), 'BOS');
   assert.equal(url.searchParams.get('arrival_id'), 'LED');
-  assert.equal(url.searchParams.get('outbound_date'), '2026-08-01');
+  assert.equal(url.searchParams.get('outbound_date'), '2026-10-01');
   assert.equal(url.searchParams.get('adults'), '2');
   assert.equal(url.searchParams.get('currency'), 'USD');
   assert.equal(url.searchParams.get('stops'), '2');
   assert.equal(url.searchParams.get('layover_duration'), '180,720');
   assert.equal(url.searchParams.get('api_key'), 'server-serpapi-key');
+});
+
+test('SerpApi proxy accepts an optional Via airport and allows any number of stops', async () => {
+  const calls = [];
+  const fetchImpl = async (url) => {
+    calls.push(String(url));
+
+    return {
+      ok: true,
+      json: async () => serpapiGoogleFlightsFixture,
+    };
+  };
+
+  const response = await createSerpApiProxyHandler({ env, fetchImpl })({
+    method: 'POST',
+    body: JSON.stringify({
+      ...proxyPayload,
+      route: {
+        ...proxyPayload.route,
+        via: null,
+      },
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(new URL(calls[0]).searchParams.get('stops'), '0');
 });
 
 test('SerpApi proxy searches every date in the requested departure range', async () => {
@@ -133,33 +159,33 @@ test('SerpApi proxy searches every date in the requested departure range', async
     method: 'POST',
     body: JSON.stringify({
       ...proxyPayload,
-      departureDate: '2026-08-01',
+      departureDate: '2026-10-01',
       dateRange: {
-        start: '2026-08-01',
-        end: '2026-08-10',
+        start: '2026-10-01',
+        end: '2026-10-10',
       },
     }),
   });
 
   assert.equal(response.status, 200);
   assert.deepEqual(calls, [
-    '2026-08-01',
-    '2026-08-02',
-    '2026-08-03',
-    '2026-08-04',
-    '2026-08-05',
-    '2026-08-06',
-    '2026-08-07',
-    '2026-08-08',
-    '2026-08-09',
-    '2026-08-10',
+    '2026-10-01',
+    '2026-10-02',
+    '2026-10-03',
+    '2026-10-04',
+    '2026-10-05',
+    '2026-10-06',
+    '2026-10-07',
+    '2026-10-08',
+    '2026-10-09',
+    '2026-10-10',
   ]);
 
   const body = JSON.parse(response.body);
   assert.equal(body.best_flights.length, 10);
   assert.equal(body.other_flights.length, 10);
-  assert.equal(body.best_flights[0].date, '2026-08-01');
-  assert.equal(body.best_flights[9].date, '2026-08-10');
+  assert.equal(body.best_flights[0].date, '2026-10-01');
+  assert.equal(body.best_flights[9].date, '2026-10-10');
 });
 
 test('SerpApi proxy maps rate limits safely', async () => {

@@ -7,7 +7,8 @@
     "dev": "vite",
     "test": "node --test",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "airports:update": "node scripts/update-airports.mjs"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",

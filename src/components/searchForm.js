@@ -1,14 +1,17 @@
-import { airports } from '../data/airports.js';
+import { findAirportById, formatAirportOptionValue, resolveAirport } from '../services/airportMetadataService.js';
 
 export const searchFormDefaults = {
   tripType: 'oneWay',
+  fromAirportId: 'oa:3422',
   from: 'Boston',
+  viaAirportId: 'oa:317457',
   via: 'Istanbul',
+  toAirportId: 'oa:6489',
   to: 'Saint Petersburg',
-  departureDate: '2026-08-01',
+  departureDate: '2026-10-01',
   dateRange: {
-    start: '2026-08-01',
-    end: '2026-08-10',
+    start: '2026-10-01',
+    end: '2026-10-10',
   },
   returnDateRange: {
     start: '',
@@ -38,35 +41,46 @@ function createErrorAttributes(fieldName, errors) {
   return `aria-invalid="true" aria-describedby="${fieldName}-error"`;
 }
 
-function createTextField({ id, label, value, errors, listId = '' }) {
-  const listAttribute = listId ? `list="${escapeHtml(listId)}"` : '';
+function createAirportCombobox({ id, label, values, errors, optional = false }) {
+  const airportId = values?.[`${id}AirportId`] ?? '';
+  const airport = findAirportById(airportId) ?? resolveAirport(values?.[id]);
+  const displayValue = airport ? formatAirportOptionValue(airport) : String(values?.[id] ?? '');
+  const selectedId = airport?.id ?? airportId;
+  const optionalLabel = optional
+    ? '<span class="font-normal text-slate-500 dark:text-slate-400">Optional</span>'
+    : '';
 
   return `
-    <label class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300" for="${id}">
-      <span class="block min-h-5">${label}</span>
-      <input
-        class="${inputClass}"
-        id="${id}"
-        name="${id}"
-        type="text"
-        value="${escapeHtml(value)}"
-        ${listAttribute}
-        ${createErrorAttributes(id, errors)}
-      />
+    <div class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300" data-airport-combobox="${id}">
+      <label class="flex min-h-5 items-center justify-between gap-2" for="${id}">
+        <span>${label}</span>${optionalLabel}
+      </label>
+      <div class="relative">
+        <input name="${id}AirportId" type="hidden" value="${escapeHtml(selectedId)}" />
+        <input
+          class="${inputClass} w-full pr-10"
+          id="${id}"
+          name="${id}Search"
+          type="text"
+          role="combobox"
+          aria-autocomplete="list"
+          aria-controls="${id}-options"
+          aria-expanded="false"
+          autocomplete="off"
+          placeholder="City, country, airport or IATA"
+          value="${escapeHtml(displayValue)}"
+          ${createErrorAttributes(id, errors)}
+        />
+        <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400" aria-hidden="true">⌄</span>
+        <div
+          class="absolute z-20 mt-1 hidden max-h-72 w-full overflow-y-auto rounded border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+          id="${id}-options"
+          role="listbox"
+        ></div>
+      </div>
       ${createFieldError(id, errors)}
-    </label>
+    </div>
   `;
-}
-
-function createAirportSuggestionsDatalist() {
-  const options = airports
-    .map(
-      (airport) =>
-        `<option value="${escapeHtml(airport.city)}" label="${escapeHtml(`${airport.iata} - ${airport.name}`)}"></option>`,
-    )
-    .join('');
-
-  return `<datalist id="airport-suggestions">${options}</datalist>`;
 }
 
 function createNumberField({ id, label, value, min, errors }) {
@@ -107,12 +121,18 @@ function createDateField({ id, label, value, errors }) {
 export function createSearchQueryFromFormData(formData) {
   const dateRangeStart = String(formData.get('dateRangeStart') ?? '');
   const tripType = String(formData.get('tripType') ?? 'oneWay');
+  const from = normalizeRouteSelection(formData, 'from');
+  const via = normalizeRouteSelection(formData, 'via');
+  const to = normalizeRouteSelection(formData, 'to');
 
   return {
     tripType,
-    from: String(formData.get('from') ?? '').trim(),
-    via: String(formData.get('via') ?? '').trim(),
-    to: String(formData.get('to') ?? '').trim(),
+    fromAirportId: from.airportId,
+    from: from.value,
+    viaAirportId: via.airportId,
+    via: via.value,
+    toAirportId: to.airportId,
+    to: to.value,
     departureDate: dateRangeStart,
     dateRange: {
       start: dateRangeStart,
@@ -126,6 +146,18 @@ export function createSearchQueryFromFormData(formData) {
     minLayover: toOptionalNumber(formData.get('minLayover')),
     maxLayover: toOptionalNumber(formData.get('maxLayover')),
   };
+}
+
+function normalizeRouteSelection(formData, fieldName) {
+  const airportId = String(formData.get(`${fieldName}AirportId`) ?? '').trim();
+  const rawValue = formData.get(`${fieldName}Search`) ?? formData.get(fieldName) ?? '';
+  const airport = findAirportById(airportId) ?? resolveAirport(rawValue);
+
+  if (airport) {
+    return { airportId: airport.id, value: airport.city };
+  }
+
+  return { airportId: '', value: String(rawValue).trim() };
 }
 
 export function createSearchForm({
@@ -147,7 +179,7 @@ export function createSearchForm({
               Flight Search
             </h1>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Search flights with one mandatory stop.
+              Search by specific passenger airports, with an optional connection.
             </p>
           </div>
           ${createThemeToggle(theme)}
@@ -159,28 +191,25 @@ export function createSearchForm({
           ${createTripTypeControl(values.tripType)}
 
           <div class="grid gap-4 md:grid-cols-3">
-            ${createTextField({
+            ${createAirportCombobox({
               id: 'from',
               label: 'From',
-              value: values.from,
+              values,
               errors,
-              listId: 'airport-suggestions',
             })}
-            ${createTextField({
+            ${createAirportCombobox({
               id: 'via',
               label: 'Via',
-              value: values.via,
+              values,
               errors,
-              listId: 'airport-suggestions',
+              optional: true,
             })}
-            ${createTextField({
+            ${createAirportCombobox({
               id: 'to',
               label: 'To',
-              value: values.to,
+              values,
               errors,
-              listId: 'airport-suggestions',
             })}
-            ${createAirportSuggestionsDatalist()}
           </div>
 
           <div class="grid gap-3">
@@ -279,10 +308,16 @@ function createSavedSearchButton(savedSearch) {
               type="button"
               data-saved-search-id="${escapeHtml(savedSearch.id)}"
             >
-              <span class="text-sm font-semibold text-slate-950 dark:text-slate-100">${escapeHtml(query.from)} to ${escapeHtml(query.to)} via ${escapeHtml(query.via)}</span>
+              <span class="text-sm font-semibold text-slate-950 dark:text-slate-100">${escapeHtml(createRouteSummary(query))}</span>
               <span class="text-sm text-slate-600 dark:text-slate-300">${escapeHtml(tripLabel)} - ${escapeHtml(formatSearchDates(query))} - ${escapeHtml(query.adults)} adults - ${escapeHtml(query.minLayover)}-${escapeHtml(query.maxLayover)}h layover</span>
             </button>
   `;
+}
+
+function createRouteSummary(query) {
+  const route = [query.from, query.via, query.to].filter((value) => String(value ?? '').trim());
+
+  return route.join(' to ');
 }
 
 function formatSearchDates(query) {

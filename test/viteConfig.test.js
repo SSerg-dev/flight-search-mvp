@@ -38,7 +38,7 @@ test('Vite dev middleware uses server-only SerpApi env from loaded env files', a
         via: { iata: 'IST' },
         to: { iata: 'LED' },
       },
-      departureDate: '2026-08-01',
+      departureDate: '2026-10-01',
       adults: 1,
     }),
   });

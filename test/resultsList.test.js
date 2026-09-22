@@ -22,9 +22,9 @@ test('result card renders flight route, airline, price, dates, layover, and dura
   assert.match(markup, new RegExp(mockFlights[0].duration.display));
   assert.match(
     markup,
-    /Boston Depart 2026-08-01 <span class="font-bold italic">Saturday<\/span> at 21:35 -&gt; Istanbul Arrive 2026-08-02 at 14:25/,
+    /Boston Depart 2026-10-01 <span class="font-bold italic">Thursday<\/span> at 21:35 -&gt; Istanbul Arrive 2026-10-02 at 14:25/,
   );
-  assert.match(markup, /Istanbul Depart 2026-08-02 at 18:55 -&gt; Saint Petersburg Arrive 2026-08-03 at 02:15/);
+  assert.match(markup, /Istanbul Depart 2026-10-02 at 18:55 -&gt; Saint Petersburg Arrive 2026-10-03 at 02:15/);
   assert.match(markup, /2 adults/);
 });
 
@@ -34,22 +34,22 @@ test('result card appends the weekday name only to the Boston departure date', (
     segments: [
       {
         ...mockFlights[0].segments[0],
-        departure: '2026-08-09 21:50',
-        arrival: '2026-08-10 14:10',
+        departure: '2026-10-09 21:50',
+        arrival: '2026-10-10 14:10',
       },
       {
         ...mockFlights[0].segments[1],
-        departure: '2026-08-10 21:45',
-        arrival: '2026-08-11 01:30',
+        departure: '2026-10-10 21:45',
+        arrival: '2026-10-11 01:30',
       },
     ],
   });
 
   assert.match(
     markup,
-    /Boston Depart 2026-08-09 <span class="font-bold italic">Sunday<\/span> at 21:50 -&gt; Istanbul Arrive 2026-08-10 at 14:10/,
+    /Boston Depart 2026-10-09 <span class="font-bold italic">Friday<\/span> at 21:50 -&gt; Istanbul Arrive 2026-10-10 at 14:10/,
   );
-  assert.match(markup, /Istanbul Depart 2026-08-10 at 21:45 -&gt; Saint Petersburg Arrive 2026-08-11 at 01:30/);
+  assert.match(markup, /Istanbul Depart 2026-10-10 at 21:45 -&gt; Saint Petersburg Arrive 2026-10-11 at 01:30/);
 });
 
 test('result card marks daytime departures with a sun badge', () => {
@@ -58,7 +58,7 @@ test('result card marks daytime departures with a sun badge', () => {
     segments: [
       {
         ...mockFlights[0].segments[0],
-        departure: '2026-08-01 10:30',
+        departure: '2026-10-01 10:30',
       },
       mockFlights[0].segments[1],
     ],
@@ -75,7 +75,7 @@ test('result card marks night departures with a night badge', () => {
     segments: [
       {
         ...mockFlights[0].segments[0],
-        departure: '2026-08-01 21:35',
+        departure: '2026-10-01 21:35',
       },
       mockFlights[0].segments[1],
     ],
@@ -122,14 +122,14 @@ test('results list connects matching flights to the selected departure range', (
   const markup = createResultsList(mockFlights.slice(0, 1), {
     query: {
       dateRange: {
-        start: '2026-08-01',
-        end: '2026-08-10',
+        start: '2026-10-01',
+        end: '2026-10-10',
       },
     },
   });
 
   assert.match(markup, /1 matching flight/);
-  assert.match(markup, /Departures from 2026-08-01 to 2026-08-10/);
+  assert.match(markup, /Departures from 2026-10-01 to 2026-10-10/);
 });
 
 test('results list renders a custom section title', () => {
@@ -146,13 +146,13 @@ test('results list renders a custom date range label', () => {
     dateRangeLabel: 'Returns',
     query: {
       dateRange: {
-        start: '2026-08-20',
-        end: '2026-08-25',
+        start: '2026-10-20',
+        end: '2026-10-25',
       },
     },
   });
 
-  assert.match(markup, /Returns from 2026-08-20 to 2026-08-25/);
+  assert.match(markup, /Returns from 2026-10-20 to 2026-10-25/);
 });
 
 test('result card handles realistic normalized provider data', () => {

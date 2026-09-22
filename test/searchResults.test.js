@@ -10,12 +10,12 @@ const roundTripQuery = {
   via: 'Istanbul',
   to: 'Saint Petersburg',
   dateRange: {
-    start: '2026-08-01',
-    end: '2026-08-10',
+    start: '2026-10-01',
+    end: '2026-10-10',
   },
   returnDateRange: {
-    start: '2026-08-20',
-    end: '2026-08-25',
+    start: '2026-10-20',
+    end: '2026-10-25',
   },
 };
 

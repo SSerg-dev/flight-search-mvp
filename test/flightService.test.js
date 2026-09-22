@@ -9,10 +9,10 @@ const baseQuery = {
   from: 'Boston',
   via: 'Istanbul',
   to: 'Saint Petersburg',
-  departureDate: '2026-08-01',
+  departureDate: '2026-10-01',
   dateRange: {
-    start: '2026-08-01',
-    end: '2026-08-10',
+    start: '2026-10-01',
+    end: '2026-10-10',
   },
   returnDateRange: {
     start: '',
@@ -71,8 +71,8 @@ test('searchFlightOffers returns outbound and return sections for round trips', 
       ...baseQuery,
       tripType: 'roundTrip',
       returnDateRange: {
-        start: '2026-08-20',
-        end: '2026-08-25',
+        start: '2026-10-20',
+        end: '2026-10-25',
       },
     },
     {
@@ -194,8 +194,8 @@ test('searchFlightOffers sends reversed route and return dates for round-trip pr
       ...baseQuery,
       tripType: 'roundTrip',
       returnDateRange: {
-        start: '2026-08-20',
-        end: '2026-08-25',
+        start: '2026-10-20',
+        end: '2026-10-25',
       },
     },
     {
@@ -214,12 +214,12 @@ test('searchFlightOffers sends reversed route and return dates for round-trip pr
 
   assert.equal(outboundPayload.route.from.iata, 'BOS');
   assert.equal(outboundPayload.route.to.iata, 'LED');
-  assert.equal(outboundPayload.dateRange.start, '2026-08-01');
-  assert.equal(outboundPayload.dateRange.end, '2026-08-10');
+  assert.equal(outboundPayload.dateRange.start, '2026-10-01');
+  assert.equal(outboundPayload.dateRange.end, '2026-10-10');
   assert.equal(returnPayload.route.from.iata, 'LED');
   assert.equal(returnPayload.route.to.iata, 'BOS');
   assert.equal(returnPayload.route.via.iata, 'IST');
-  assert.equal(returnPayload.departureDate, '2026-08-20');
-  assert.equal(returnPayload.dateRange.start, '2026-08-20');
-  assert.equal(returnPayload.dateRange.end, '2026-08-25');
+  assert.equal(returnPayload.departureDate, '2026-10-20');
+  assert.equal(returnPayload.dateRange.start, '2026-10-20');
+  assert.equal(returnPayload.dateRange.end, '2026-10-25');
 });

@@ -113,7 +113,7 @@ function buildSerpApiUrl({ apiBaseUrl, apiKey, payload }) {
   url.searchParams.set('outbound_date', payload.departureDate);
   url.searchParams.set('adults', String(Number(payload.adults)));
   url.searchParams.set('currency', 'USD');
-  url.searchParams.set('stops', '2');
+  url.searchParams.set('stops', payload.route.via?.iata ? '2' : '0');
   url.searchParams.set('api_key', apiKey);
 
   if (minLayoverMinutes > 0 && maxLayoverMinutes >= minLayoverMinutes) {
@@ -164,7 +164,7 @@ function isValidProxyPayload(payload) {
   return (
     payload?.provider === 'serpapi' &&
     hasText(payload.route?.from?.iata) &&
-    hasText(payload.route?.via?.iata) &&
+    (!payload.route?.via || hasText(payload.route.via.iata)) &&
     hasText(payload.route?.to?.iata) &&
     hasText(payload.departureDate) &&
     Number.isFinite(Number(payload.adults)) &&

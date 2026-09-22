@@ -3,20 +3,20 @@ import { searchFlights } from '../../utils/searchFlights.js';
 
 const DEFAULT_DELAY_MS = 150;
 
-export async function searchMockFlightOffers(query, { delayMs = DEFAULT_DELAY_MS, shouldFail = false } = {}) {
+export async function searchMockFlightOffers(query, { delayMs = DEFAULT_DELAY_MS, shouldFail = false, ...options } = {}) {
   await wait(delayMs);
 
   if (shouldFail) {
     throw new Error('Mock flight service failed.');
   }
 
-  const results = searchFlights(query, mockFlights);
+  const results = searchFlights(query, mockFlights, options);
 
   if (results.length > 0) {
     return results;
   }
 
-  return searchFlights(query, createReversedMockFlights(query));
+  return searchFlights(query, createReversedMockFlights(query), options);
 }
 
 function wait(delayMs) {

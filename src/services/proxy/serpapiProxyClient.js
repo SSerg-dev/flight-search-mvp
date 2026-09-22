@@ -1,12 +1,12 @@
-import { searchAirports } from '../airportMetadataService.js';
+import { findAirportById, resolveAirport } from '../airportMetadataService.js';
 
 export function buildSerpApiProxyRequest(query) {
   return {
     provider: 'serpapi',
     route: {
-      from: resolveRouteAirport(query.from, 'From'),
-      via: resolveRouteAirport(query.via, 'Via'),
-      to: resolveRouteAirport(query.to, 'To'),
+      from: resolveRouteAirport(query, 'from', 'From'),
+      via: resolveRouteAirport(query, 'via', 'Via', { optional: true }),
+      to: resolveRouteAirport(query, 'to', 'To'),
     },
     departureDate: query.departureDate,
     dateRange: {
@@ -56,15 +56,20 @@ export async function fetchSerpApiFlightOffers(query, { proxyUrl, fetchImpl = ge
   }
 }
 
-function resolveRouteAirport(value, label) {
-  const airport = searchAirports(value, { limit: 1 })[0];
+function resolveRouteAirport(query, fieldName, label, { optional = false } = {}) {
+  const value = query?.[fieldName];
+  const airport = findAirportById(query?.[`${fieldName}AirportId`]) ?? resolveAirport(value);
+
+  if (optional && !String(value ?? '').trim() && !query?.[`${fieldName}AirportId`]) {
+    return null;
+  }
 
   if (!airport) {
     throw new Error(`Airport could not be resolved for ${label}.`);
   }
 
   return {
-    query: value,
+    query: value || airport.city,
     iata: airport.iata,
   };
 }
