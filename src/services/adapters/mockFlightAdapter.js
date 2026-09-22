@@ -13,10 +13,38 @@ export async function searchMockFlightOffers(query, { delayMs = DEFAULT_DELAY_MS
   const results = searchFlights(query, mockFlights, options);
 
   if (results.length > 0) {
-    return results;
+    return priceForPassengerCount(results, query.adults);
   }
 
-  return searchFlights(query, createReversedMockFlights(query), options);
+  return priceForPassengerCount(
+    searchFlights(query, createReversedMockFlights(query), options),
+    query.adults,
+  );
+}
+
+function priceForPassengerCount(flights, passengerCountValue) {
+  const passengerCount = Number(passengerCountValue);
+
+  return flights.map((flight) => {
+    const basePassengerCount = Number(flight.price?.passengerCount) || 1;
+    const pricePerAdult = Number(flight.price?.amount ?? 0) / basePassengerCount;
+    const amount = pricePerAdult * passengerCount;
+    const currency = flight.price?.currency ?? 'USD';
+
+    return {
+      ...flight,
+      price: {
+        ...flight.price,
+        amount,
+        display: formatPrice(amount, currency),
+        passengerCount,
+      },
+    };
+  });
+}
+
+function formatPrice(amount, currency) {
+  return currency === 'USD' ? `$${amount}` : `${amount} ${currency}`;
 }
 
 function wait(delayMs) {

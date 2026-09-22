@@ -65,6 +65,22 @@ test('searchFlightOffers uses mock adapter for mock mode', async () => {
   assert.ok(results.every((flight) => flight.route.stopover.city === baseQuery.via));
 });
 
+test('mock mode recalculates total prices for the selected number of adults', async () => {
+  const options = {
+    delayMs: 0,
+    env: {
+      VITE_FLIGHT_API_MODE: 'mock',
+    },
+  };
+  const oneAdult = await searchFlightOffers({ ...baseQuery, adults: 1 }, options);
+  const threeAdults = await searchFlightOffers({ ...baseQuery, adults: 3 }, options);
+
+  assert.equal(threeAdults[0].price.amount, oneAdult[0].price.amount * 3);
+  assert.equal(oneAdult[0].price.passengerCount, 1);
+  assert.equal(threeAdults[0].price.passengerCount, 3);
+  assert.equal(threeAdults[0].price.display, `$${threeAdults[0].price.amount}`);
+});
+
 test('searchFlightOffers returns outbound and return sections for round trips', async () => {
   const results = await searchFlightOffers(
     {
@@ -136,7 +152,7 @@ test('searchFlightOffers returns normalized SerpApi offers through configured pr
 
   assert.equal(results.length, 1);
   assert.equal(results[0].airline.name, 'Turkish Airlines');
-  assert.equal(results[0].price.display, '$713');
+  assert.equal(results[0].price.display, '$1426');
   assert.equal(results[0].route.stopover.city, 'Istanbul');
 });
 
