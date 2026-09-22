@@ -25,9 +25,9 @@ test('normalizes SerpApi Google Flights results into the app flight shape', () =
       flightNumbers: ['TK82', 'TK401'],
     },
     price: {
-      amount: 1426,
+      amount: 713,
       currency: 'USD',
-      display: '$1426',
+      display: '$713',
       passengerCount: 2,
     },
     route: {
@@ -98,26 +98,22 @@ test('deduplicates identical itineraries and keeps the cheapest price', () => {
   );
 
   assert.equal(results.length, 1);
-  assert.equal(results[0].price.amount, 1280);
-  assert.equal(results[0].price.display, '$1280');
+  assert.equal(results[0].price.amount, 640);
+  assert.equal(results[0].price.display, '$640');
 });
 
-test('calculates the total SerpApi price for the selected number of adults', () => {
-  const oneAdult = normalizeSerpApiFlightResults(serpapiGoogleFlightsFixture, {
-    query: { ...query, adults: 1 },
-    currentDate,
-  });
-  const threeAdults = normalizeSerpApiFlightResults(serpapiGoogleFlightsFixture, {
-    query: { ...query, adults: 3 },
+test('preserves the SerpApi group total without multiplying it by the passenger count', () => {
+  const response = structuredClone(serpapiGoogleFlightsFixture);
+  response.best_flights[0].price = 3123;
+
+  const [result] = normalizeSerpApiFlightResults(response, {
+    query: { ...query, adults: 2 },
     currentDate,
   });
 
-  assert.equal(oneAdult[0].price.amount, 713);
-  assert.equal(oneAdult[0].price.display, '$713');
-  assert.equal(oneAdult[0].price.passengerCount, 1);
-  assert.equal(threeAdults[0].price.amount, 2139);
-  assert.equal(threeAdults[0].price.display, '$2139');
-  assert.equal(threeAdults[0].price.passengerCount, 3);
+  assert.equal(result.price.amount, 3123);
+  assert.equal(result.price.display, '$3123');
+  assert.equal(result.price.passengerCount, 2);
 });
 
 test('keeps same-day offers when any flight segment differs', () => {

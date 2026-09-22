@@ -67,8 +67,7 @@ function normalizeResult(result, query = {}) {
   const airlineCode = getAirlineCode(flightNumbers[0]);
   const layoverMinutes = getArray(result?.layovers).reduce((total, layover) => total + Number(layover?.duration ?? 0), 0);
   const totalMinutes = Number(result.total_duration ?? getTotalMinutes(flights, layoverMinutes));
-  const pricePerAdult = Number(result.price ?? 0);
-  const priceAmount = pricePerAdult * passengerCount;
+  const priceAmount = Number(result.price ?? 0);
 
   return {
     id: createId(flights, flightNumbers),
