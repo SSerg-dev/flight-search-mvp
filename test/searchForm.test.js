@@ -267,6 +267,30 @@ test('creates direct and discovered Via preferences from the dynamic selector', 
   assert.equal(viaQuery.via, 'Istanbul');
 });
 
+test('stores a city-wide endpoint selected from the location combobox', () => {
+  const formData = new FormData();
+  formData.set('fromAirportId', 'oa:3422');
+  formData.set('fromSearch', 'Boston');
+  formData.set('viaRoute', 'all');
+  formData.set('toAirportId', 'city:ru:moscow');
+  formData.set('toSearch', 'Moscow — All airports (DME, SVO, VKO, ZIA), Russia');
+  formData.set('tripType', 'oneWay');
+  formData.set('dateRangeStart', '2026-10-01');
+  formData.set('dateRangeEnd', '2026-10-10');
+  formData.set('adults', '1');
+  formData.set('minLayover', '3');
+  formData.set('maxLayover', '22');
+
+  const query = searchForm.createSearchQueryFromFormData(formData);
+
+  assert.equal(query.toAirportId, 'city:ru:moscow');
+  assert.equal(query.to, 'Moscow');
+  assert.equal(query.connectionPreference, 'all');
+
+  const markup = searchForm.createSearchForm({ values: query });
+  assert.match(markup, /Moscow — All airports \(DME, SVO, VKO, ZIA\), Russia/);
+});
+
 test('escapes submitted values and validation messages before rendering', () => {
   const markup = searchForm.createSearchForm({
     values: {

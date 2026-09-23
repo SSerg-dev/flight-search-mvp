@@ -195,6 +195,36 @@ test('searchFlightOffers sends resolved airport IATA codes in SerpApi proxy payl
   });
 });
 
+test('searchFlightOffers expands a city-wide endpoint into its airport codes', async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, init });
+    return { ok: true, json: async () => ({ best_flights: [], other_flights: [] }) };
+  };
+
+  await searchFlightOffers(
+    {
+      ...baseQuery,
+      via: '',
+      viaAirportId: '',
+      connectionPreference: 'all',
+      to: 'Moscow',
+      toAirportId: 'city:ru:moscow',
+    },
+    {
+      fetchImpl,
+      env: {
+        VITE_FLIGHT_API_MODE: 'serpapi',
+        VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/serpapi-flights',
+      },
+    },
+  );
+
+  const payload = JSON.parse(calls[0].init.body);
+  assert.equal(payload.route.to.query, 'Moscow');
+  assert.equal(payload.route.to.iata, 'DME,SVO,VKO,ZIA');
+});
+
 test('searchFlightOffers sends reversed route and return dates for round-trip proxy searches', async () => {
   const calls = [];
   const fetchImpl = async (url, init) => {

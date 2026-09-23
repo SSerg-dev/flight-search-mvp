@@ -38,6 +38,20 @@ test('accepts a search without a Via airport', () => {
   });
 });
 
+test('accepts a city-wide route endpoint', () => {
+  assert.deepEqual(
+    validate({
+      ...validQuery,
+      to: 'Moscow',
+      toAirportId: 'city:ru:moscow',
+      via: '',
+      viaAirportId: '',
+      connectionPreference: 'all',
+    }),
+    { isValid: true, errors: {} },
+  );
+});
+
 test('rejects empty required fields', () => {
   const result = validate({
     from: '',

@@ -99,3 +99,27 @@ test('searchFlights filters out flights with invalid arrival timing', () => {
 
   assert.deepEqual(results, []);
 });
+
+test('searchFlights matches any airport contained in a city-wide endpoint', () => {
+  const flight = structuredClone(mockFlights[0]);
+  flight.route.destination = {
+    city: 'Moscow',
+    airport: 'Vnukovo International Airport',
+    code: 'VKO',
+  };
+
+  const results = searchFlights(
+    {
+      ...baseQuery,
+      connectionPreference: 'all',
+      via: '',
+      viaAirportId: '',
+      to: 'Moscow',
+      toAirportId: 'city:ru:moscow',
+    },
+    [flight],
+    { currentDate },
+  );
+
+  assert.equal(results.length, 1);
+});

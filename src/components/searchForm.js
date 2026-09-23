@@ -1,4 +1,11 @@
-import { findAirportById, findAirportByIata, formatAirportOptionValue, resolveAirport } from '../services/airportMetadataService.js';
+import {
+  findAirportById,
+  findAirportByIata,
+  findRouteLocationById,
+  formatRouteLocationOptionValue,
+  resolveAirport,
+  resolveRouteLocation,
+} from '../services/airportMetadataService.js';
 
 export const searchFormDefaults = {
   tripType: 'oneWay',
@@ -44,8 +51,8 @@ function createErrorAttributes(fieldName, errors) {
 
 function createAirportCombobox({ id, label, values, errors, optional = false }) {
   const airportId = values?.[`${id}AirportId`] ?? '';
-  const airport = findAirportById(airportId) ?? resolveAirport(values?.[id]);
-  const displayValue = airport ? formatAirportOptionValue(airport) : String(values?.[id] ?? '');
+  const airport = findRouteLocationById(airportId) ?? resolveRouteLocation(values?.[id]);
+  const displayValue = airport ? formatRouteLocationOptionValue(airport) : String(values?.[id] ?? '');
   const selectedId = airport?.id ?? airportId;
   const optionalLabel = optional
     ? '<span class="font-normal text-slate-500 dark:text-slate-400">Optional</span>'
@@ -180,9 +187,9 @@ function createDateField({ id, label, value, errors }) {
 export function createSearchQueryFromFormData(formData) {
   const dateRangeStart = String(formData.get('dateRangeStart') ?? '');
   const tripType = String(formData.get('tripType') ?? 'oneWay');
-  const from = normalizeRouteSelection(formData, 'from');
+  const from = normalizeEndpointSelection(formData, 'from');
   const viaSelection = normalizeViaRouteSelection(formData);
-  const to = normalizeRouteSelection(formData, 'to');
+  const to = normalizeEndpointSelection(formData, 'to');
 
   return {
     tripType,
@@ -247,6 +254,18 @@ function normalizeRouteSelection(formData, fieldName) {
   return { airportId: '', value: String(rawValue).trim() };
 }
 
+function normalizeEndpointSelection(formData, fieldName) {
+  const locationId = String(formData.get(`${fieldName}AirportId`) ?? '').trim();
+  const rawValue = formData.get(`${fieldName}Search`) ?? formData.get(fieldName) ?? '';
+  const location = findRouteLocationById(locationId) ?? resolveRouteLocation(rawValue);
+
+  if (location) {
+    return { airportId: location.id, value: location.city };
+  }
+
+  return { airportId: '', value: String(rawValue).trim() };
+}
+
 export function createSearchForm({
   theme = 'light',
   values = searchFormDefaults,
@@ -268,7 +287,7 @@ export function createSearchForm({
               Flight Search
             </h1>
             <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-              Search by specific passenger airports, with an optional connection.
+              Choose a specific airport or all airports in a city, then filter by available connections.
             </p>
           </div>
           ${createThemeToggle(theme)}

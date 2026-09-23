@@ -3,7 +3,7 @@ import { createSearchForm, createSearchQueryFromFormData, searchFormDefaults } f
 import { createSearchResultsMarkup } from './components/searchResults.js';
 import { createSearchStatus } from './components/searchStatus.js';
 import { searchFlightOffers } from './services/flightService.js';
-import { formatAirportOptionValue, searchAirports } from './services/airportMetadataService.js';
+import { formatRouteLocationOptionValue, searchRouteLocations } from './services/airportMetadataService.js';
 import { getServiceErrorMessage } from './utils/serviceErrorMessage.js';
 import { clearSavedSearches, getSavedSearches, saveSearch } from './utils/savedSearches.js';
 import { applyTheme, getInitialTheme, getNextTheme, persistTheme } from './utils/theme.js';
@@ -108,7 +108,7 @@ function initializeAirportComboboxes(form) {
     });
 
     function updateResults() {
-      results = searchAirports(input.value, { limit: 8 });
+      results = searchRouteLocations(input.value, { limit: 8 });
       activeIndex = results.length > 0 ? 0 : -1;
       renderOptions();
     }
@@ -140,12 +140,14 @@ function initializeAirportComboboxes(form) {
           option.setAttribute('role', 'option');
           option.setAttribute('aria-selected', String(index === activeIndex));
           code.className = 'rounded bg-sky-50 px-2 py-1 text-xs font-bold text-sky-700 dark:bg-sky-400/10 dark:text-sky-300';
-          code.textContent = airport.iata;
+          code.textContent = airport.kind === 'city' ? 'CITY' : airport.iata;
           details.className = 'min-w-0';
           airportName.className = 'block truncate font-semibold text-slate-900 dark:text-slate-100';
-          airportName.textContent = airport.name;
+          airportName.textContent = airport.kind === 'city' ? `${airport.city} — All airports` : airport.name;
           location.className = 'block truncate text-xs font-normal text-slate-500 dark:text-slate-400';
-          location.textContent = `${airport.city}, ${airport.country}`;
+          location.textContent = airport.kind === 'city'
+            ? `${airport.iataCodes.join(', ')} · ${airport.country}`
+            : `${airport.city}, ${airport.country}`;
           details.append(airportName, location);
           option.append(code, details);
           option.addEventListener('mousedown', (event) => event.preventDefault());
@@ -172,7 +174,7 @@ function initializeAirportComboboxes(form) {
 
     function selectAirport(airport) {
       hiddenInput.value = airport.id;
-      input.value = formatAirportOptionValue(airport);
+      input.value = formatRouteLocationOptionValue(airport);
       closeListbox();
       input.dispatchEvent(new Event('change', { bubbles: true }));
     }

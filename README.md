@@ -14,7 +14,9 @@ MVP v3: SerpApi-only provider cleanup.
 
 ## Features
 
-- One-way and round-trip searches with an optional selected connection airport.
+- One-way and round-trip searches with dynamically discovered direct and one-stop route options.
+- City-wide endpoints such as `Moscow — All airports`, while preserving exact-airport selection.
+- Results grouped with direct flights first, followed by available connection airports.
 - Searchable, keyboard-accessible airport comboboxes match city, country, airport name, IATA code, and available local aliases.
 - Selected airports are stored by stable dataset ID while their readable city labels remain compatible with the flight providers.
 - Departure dates must be valid future dates, and displayed flights must arrive after departure and after the current date.

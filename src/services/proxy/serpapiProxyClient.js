@@ -1,4 +1,10 @@
-import { findAirportById, resolveAirport } from '../airportMetadataService.js';
+import {
+  findAirportById,
+  findRouteLocationById,
+  getRouteLocationIata,
+  resolveAirport,
+  resolveRouteLocation,
+} from '../airportMetadataService.js';
 
 export function buildSerpApiProxyRequest(query) {
   return {
@@ -59,7 +65,10 @@ export async function fetchSerpApiFlightOffers(query, { proxyUrl, fetchImpl = ge
 
 function resolveRouteAirport(query, fieldName, label, { optional = false } = {}) {
   const value = query?.[fieldName];
-  const airport = findAirportById(query?.[`${fieldName}AirportId`]) ?? resolveAirport(value);
+  const isConnection = fieldName === 'via';
+  const airport = isConnection
+    ? findAirportById(query?.[`${fieldName}AirportId`]) ?? resolveAirport(value)
+    : findRouteLocationById(query?.[`${fieldName}AirportId`]) ?? resolveRouteLocation(value);
 
   if (optional && !String(value ?? '').trim() && !query?.[`${fieldName}AirportId`]) {
     return null;
@@ -71,7 +80,7 @@ function resolveRouteAirport(query, fieldName, label, { optional = false } = {})
 
   return {
     query: value || airport.city,
-    iata: airport.iata,
+    iata: isConnection ? airport.iata : getRouteLocationIata(airport),
   };
 }
 

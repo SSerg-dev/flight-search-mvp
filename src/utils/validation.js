@@ -1,4 +1,9 @@
-import { findAirportById, resolveAirport } from '../services/airportMetadataService.js';
+import {
+  findAirportById,
+  findRouteLocationById,
+  resolveAirport,
+  resolveRouteLocation,
+} from '../services/airportMetadataService.js';
 import { isDateAfterToday, parseDateOnly } from './dateTime.js';
 
 export function validateSearchQuery(query, { currentDate = new Date() } = {}) {
@@ -104,5 +109,9 @@ function hasDuplicateRoutePoint(query) {
 }
 
 function resolveRouteAirport(query, fieldName) {
-  return findAirportById(query?.[`${fieldName}AirportId`]) ?? resolveAirport(query?.[fieldName]);
+  if (fieldName === 'via') {
+    return findAirportById(query?.viaAirportId) ?? resolveAirport(query?.via);
+  }
+
+  return findRouteLocationById(query?.[`${fieldName}AirportId`]) ?? resolveRouteLocation(query?.[fieldName]);
 }

@@ -4,9 +4,14 @@ import test from 'node:test';
 import {
   findAirportById,
   findAirportByIata,
+  findRouteLocationById,
   formatAirportOptionValue,
+  formatRouteLocationOptionValue,
+  getRouteLocationIata,
   resolveAirport,
+  resolveRouteLocation,
   searchAirports,
+  searchRouteLocations,
 } from '../src/services/airportMetadataService.js';
 
 test('findAirportByIata returns airport metadata for an IATA code', () => {
@@ -18,6 +23,23 @@ test('findAirportByIata returns airport metadata for an IATA code', () => {
   assert.equal(airport.city, 'Boston');
   assert.equal(airport.country, 'United States');
   assert.equal(findAirportById(airport.id), airport);
+});
+
+test('route locations offer a city-wide choice before individual airports', () => {
+  const results = searchRouteLocations('Moscow', { limit: 5 });
+  const city = results[0];
+
+  assert.equal(city.id, 'city:ru:moscow');
+  assert.equal(city.kind, 'city');
+  assert.deepEqual(city.iataCodes, ['DME', 'SVO', 'VKO', 'ZIA']);
+  assert.equal(findRouteLocationById(city.id), city);
+  assert.equal(resolveRouteLocation('Moscow'), city);
+  assert.equal(getRouteLocationIata(city), 'DME,SVO,VKO,ZIA');
+  assert.equal(
+    formatRouteLocationOptionValue(city),
+    'Moscow — All airports (DME, SVO, VKO, ZIA), Russia',
+  );
+  assert.equal(results[1].iata, 'DME');
 });
 
 test('findAirportByIata returns null for missing or unknown codes', () => {

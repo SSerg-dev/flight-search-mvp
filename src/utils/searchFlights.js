@@ -1,5 +1,10 @@
 import { isFlightTimingValid } from './dateTime.js';
-import { findAirportById, resolveAirport } from '../services/airportMetadataService.js';
+import {
+  findAirportById,
+  findRouteLocationById,
+  resolveAirport,
+  resolveRouteLocation,
+} from '../services/airportMetadataService.js';
 
 export function searchFlights(query, flights, options = {}) {
   const fromAirport = resolveQueryAirport(query, 'from');
@@ -37,11 +42,19 @@ function matchesConnection(flight, isDirect, preference, viaAirport, fallbackVal
 }
 
 function resolveQueryAirport(query, fieldName) {
-  return findAirportById(query?.[`${fieldName}AirportId`]) ?? resolveAirport(query?.[fieldName]);
+  if (fieldName === 'via') {
+    return findAirportById(query?.viaAirportId) ?? resolveAirport(query?.via);
+  }
+
+  return findRouteLocationById(query?.[`${fieldName}AirportId`]) ?? resolveRouteLocation(query?.[fieldName]);
 }
 
 function matchesRoutePoint(routePoint, airport, fallbackValue) {
   if (airport) {
+    if (airport.kind === 'city') {
+      return airport.iataCodes.some((iata) => normalize(routePoint?.code) === normalize(iata));
+    }
+
     return normalize(routePoint?.code) === normalize(airport.iata);
   }
 
