@@ -8,6 +8,10 @@ import { getServiceErrorMessage } from './utils/serviceErrorMessage.js';
 import { clearSavedSearches, getSavedSearches, saveSearch } from './utils/savedSearches.js';
 import { applyTheme, getInitialTheme, getNextTheme, persistTheme } from './utils/theme.js';
 import { validateSearchQuery } from './utils/validation.js';
+import {
+  filterFlightResultsByConnection,
+  getAvailableConnectionOptions,
+} from './utils/flightConnections.js';
 
 const app = document.querySelector('#app');
 const initialTheme = getInitialTheme();
@@ -24,6 +28,10 @@ const appState = {
   serviceError: '',
   sortBy: 'price',
   savedSearches: getSavedSearches(),
+  routeOptions: [],
+  routeOptionsStatus: 'idle',
+  routeDiscoverySignature: '',
+  routeDiscoveryResults: undefined,
 };
 
 renderApp();
@@ -36,6 +44,8 @@ function renderApp() {
       errors: appState.errors,
       isLoading: appState.isLoading,
       savedSearches: appState.savedSearches,
+      routeOptions: appState.routeOptions,
+      routeOptionsStatus: appState.routeOptionsStatus,
     }) +
     createSearchStatus({
       isLoading: appState.isLoading,
@@ -49,6 +59,7 @@ function renderApp() {
   const themeToggle = app.querySelector('#theme-toggle');
 
   form.addEventListener('submit', handleSearchSubmit);
+  form.addEventListener('change', handleSearchCriteriaChange);
   initializeAirportComboboxes(form);
   themeToggle.addEventListener('click', handleThemeToggle);
   app.querySelectorAll('[data-saved-search-id]').forEach((button) => {
@@ -61,6 +72,8 @@ function renderApp() {
   app.querySelectorAll('select[name="sortBy"]').forEach((select) => {
     select.addEventListener('change', handleSortChange);
   });
+
+  discoverAvailableConnections(form);
 }
 
 function initializeAirportComboboxes(form) {
@@ -161,6 +174,7 @@ function initializeAirportComboboxes(form) {
       hiddenInput.value = airport.id;
       input.value = formatAirportOptionValue(airport);
       closeListbox();
+      input.dispatchEvent(new Event('change', { bubbles: true }));
     }
 
     function closeListbox() {
@@ -216,7 +230,13 @@ async function handleSearchSubmit(event) {
   renderApp();
 
   try {
-    appState.results = await searchFlightOffers(query);
+    const discoverySignature = createRouteDiscoverySignature(query);
+
+    if (discoverySignature === appState.routeDiscoverySignature && appState.routeDiscoveryResults) {
+      appState.results = filterFlightResultsByConnection(appState.routeDiscoveryResults, query);
+    } else {
+      appState.results = await searchFlightOffers(query);
+    }
   } catch (error) {
     appState.results = undefined;
     appState.serviceError = getServiceErrorMessage(error);
@@ -224,6 +244,101 @@ async function handleSearchSubmit(event) {
     appState.isLoading = false;
     renderApp();
   }
+}
+
+function handleSearchCriteriaChange(event) {
+  const fieldName = event.target?.name;
+
+  if (fieldName === 'viaRoute' || fieldName === 'tripType') {
+    if (fieldName === 'viaRoute') {
+      const query = createSearchQueryFromFormData(new FormData(event.currentTarget));
+      appState.values = query;
+      appState.errors = {};
+
+      if (appState.routeDiscoveryResults) {
+        appState.results = filterFlightResultsByConnection(appState.routeDiscoveryResults, query);
+        appState.lastQuery = query;
+      }
+
+      renderApp();
+    }
+
+    return;
+  }
+
+  appState.values = createSearchQueryFromFormData(new FormData(event.currentTarget));
+  appState.errors = {};
+  appState.results = undefined;
+  appState.lastQuery = undefined;
+  appState.serviceError = '';
+  appState.routeOptions = [];
+  appState.routeOptionsStatus = 'idle';
+  appState.routeDiscoverySignature = '';
+  appState.routeDiscoveryResults = undefined;
+  renderApp();
+}
+
+async function discoverAvailableConnections(form) {
+  const query = createDiscoveryQuery(new FormData(form));
+  const validation = validateSearchQuery(query);
+
+  if (!validation.isValid) {
+    return;
+  }
+
+  const signature = createRouteDiscoverySignature(query);
+
+  if (
+    signature === appState.routeDiscoverySignature &&
+    (appState.routeOptionsStatus === 'loading' || appState.routeOptionsStatus === 'loaded')
+  ) {
+    return;
+  }
+
+  appState.routeDiscoverySignature = signature;
+  appState.routeOptionsStatus = 'loading';
+  renderApp();
+
+  try {
+    const results = await searchFlightOffers(query);
+
+    if (appState.routeDiscoverySignature !== signature) {
+      return;
+    }
+
+    appState.routeDiscoveryResults = results;
+    appState.routeOptions = getAvailableConnectionOptions(results);
+    appState.routeOptionsStatus = 'loaded';
+  } catch {
+    if (appState.routeDiscoverySignature !== signature) {
+      return;
+    }
+
+    appState.routeOptions = [];
+    appState.routeDiscoveryResults = undefined;
+    appState.routeOptionsStatus = 'error';
+  }
+
+  renderApp();
+}
+
+function createDiscoveryQuery(formData) {
+  formData.set('viaRoute', 'all');
+
+  return createSearchQueryFromFormData(formData);
+}
+
+function createRouteDiscoverySignature(query) {
+  return JSON.stringify({
+    tripType: query.tripType,
+    fromAirportId: query.fromAirportId,
+    toAirportId: query.toAirportId,
+    dateRange: query.dateRange,
+    returnDateRange: query.returnDateRange,
+    adults: query.adults,
+    minLayover: query.minLayover,
+    maxLayover: query.maxLayover,
+  });
 }
 
 function handleSortChange(event) {
@@ -239,6 +354,10 @@ function handleTripTypeChange(event) {
   appState.results = undefined;
   appState.lastQuery = undefined;
   appState.serviceError = '';
+  appState.routeOptions = [];
+  appState.routeOptionsStatus = 'idle';
+  appState.routeDiscoverySignature = '';
+  appState.routeDiscoveryResults = undefined;
   renderApp();
 }
 
@@ -255,6 +374,10 @@ function handleSavedSearchSelect(event) {
   appState.results = undefined;
   appState.lastQuery = undefined;
   appState.serviceError = '';
+  appState.routeOptions = [];
+  appState.routeOptionsStatus = 'idle';
+  appState.routeDiscoverySignature = '';
+  appState.routeDiscoveryResults = undefined;
   renderApp();
 }
 

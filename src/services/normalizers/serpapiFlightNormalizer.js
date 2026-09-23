@@ -4,9 +4,10 @@ import { resolveAirport } from '../airportMetadataService.js';
 export function normalizeSerpApiFlightResults(response, { query, currentDate = new Date() } = {}) {
   const results = [...getArray(response?.best_flights), ...getArray(response?.other_flights)];
   const stopoverCode = getKnownAirportCode(query?.viaAirportId || query?.via);
+  const connectionPreference = getConnectionPreference(query, stopoverCode);
 
   const flights = results
-    .filter((result) => hasRequestedStopover(result, stopoverCode))
+    .filter((result) => hasRequestedConnection(result, connectionPreference, stopoverCode))
     .map((result) => normalizeResult(result, query))
     .filter((flight) => isFlightTimingValid(flight, { currentDate }));
 
@@ -127,18 +128,31 @@ function hasCompleteFlightTiming(flight) {
   );
 }
 
-function hasRequestedStopover(result, stopoverCode) {
+function hasRequestedConnection(result, connectionPreference, stopoverCode) {
+  const flights = getArray(result?.flights);
   const layovers = getArray(result?.layovers);
 
-  if (!hasText(stopoverCode)) {
-    return getArray(result?.flights).length >= 1;
+  if (connectionPreference === 'direct') {
+    return flights.length === 1 && layovers.length === 0;
   }
 
-  if (getArray(result?.flights).length !== 2 || layovers.length !== 1) {
+  if (connectionPreference === 'all') {
+    return flights.length >= 1 && flights.length <= 2 && layovers.length <= 1;
+  }
+
+  if (flights.length !== 2 || layovers.length !== 1) {
     return false;
   }
 
   return String(layovers[0]?.id ?? '').toUpperCase() === stopoverCode;
+}
+
+function getConnectionPreference(query, stopoverCode) {
+  if (['all', 'direct', 'via'].includes(query?.connectionPreference)) {
+    return query.connectionPreference;
+  }
+
+  return hasText(stopoverCode) ? 'via' : 'all';
 }
 
 function getStopover(result, firstFlight) {

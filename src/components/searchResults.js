@@ -1,5 +1,6 @@
 import { createResultsList } from './resultsList.js';
 import { createRoundTripResultsList } from './roundTripResultsList.js';
+import { createGroupedResultsList } from './groupedResultsList.js';
 import { sortFlights } from '../utils/sortFlights.js';
 
 export function createSearchResultsMarkup(results, { sortBy = 'price', query } = {}) {
@@ -12,6 +13,10 @@ export function createSearchResultsMarkup(results, { sortBy = 'price', query } =
 
   if (!Array.isArray(results)) {
     return '';
+  }
+
+  if (query?.connectionPreference === 'all') {
+    return createGroupedResultsList(results, { sortBy, query });
   }
 
   return createResultsList(sortFlights(results, sortBy), { sortBy, query });

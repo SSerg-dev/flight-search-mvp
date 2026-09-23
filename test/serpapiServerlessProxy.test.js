@@ -104,7 +104,7 @@ test('SerpApi proxy requests Google Flights one-way results', async () => {
   assert.equal(url.searchParams.get('api_key'), 'server-serpapi-key');
 });
 
-test('SerpApi proxy accepts an optional Via airport and allows any number of stops', async () => {
+test('SerpApi proxy discovers direct and one-stop routes when Via is not selected', async () => {
   const calls = [];
   const fetchImpl = async (url) => {
     calls.push(String(url));
@@ -127,7 +127,22 @@ test('SerpApi proxy accepts an optional Via airport and allows any number of sto
   });
 
   assert.equal(response.status, 200);
-  assert.equal(new URL(calls[0]).searchParams.get('stops'), '0');
+  assert.equal(new URL(calls[0]).searchParams.get('stops'), '2');
+});
+
+test('SerpApi proxy requests nonstop routes for the direct preference', async () => {
+  const calls = [];
+  const fetchImpl = async (url) => {
+    calls.push(String(url));
+    return { ok: true, json: async () => serpapiGoogleFlightsFixture };
+  };
+
+  await createSerpApiProxyHandler({ env, fetchImpl })({
+    method: 'POST',
+    body: JSON.stringify({ ...proxyPayload, connectionPreference: 'direct' }),
+  });
+
+  assert.equal(new URL(calls[0]).searchParams.get('stops'), '1');
 });
 
 test('SerpApi proxy searches every date in the requested departure range', async () => {

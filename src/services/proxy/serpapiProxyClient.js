@@ -14,6 +14,7 @@ export function buildSerpApiProxyRequest(query) {
       end: query.dateRange?.end,
     },
     adults: Number(query.adults),
+    connectionPreference: query.connectionPreference ?? (query.via ? 'via' : 'all'),
     layover: {
       minHours: Number(query.minLayover),
       maxHours: Number(query.maxLayover),

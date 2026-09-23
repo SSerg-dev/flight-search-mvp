@@ -7,18 +7,33 @@ export function searchFlights(query, flights, options = {}) {
   const toAirport = resolveQueryAirport(query, 'to');
 
   return flights.filter((flight) => {
+    const isDirect = !flight.route.stopover || flight.segments?.length === 1;
+    const connectionPreference = query.connectionPreference ?? (viaAirport || hasText(query.via) ? 'via' : 'all');
+
     return (
       matchesRoutePoint(flight.route.origin, fromAirport, query.from) &&
-      (!viaAirport && !hasText(query.via) || matchesRoutePoint(flight.route.stopover, viaAirport, query.via)) &&
+      matchesConnection(flight, isDirect, connectionPreference, viaAirport, query.via) &&
       matchesRoutePoint(flight.route.destination, toAirport, query.to) &&
       flight.route.departureDate >= query.dateRange.start &&
       flight.route.departureDate <= query.dateRange.end &&
       Number(flight.availability.seats) >= Number(query.adults) &&
-      Number(flight.duration.layoverMinutes) >= Number(query.minLayover) * 60 &&
-      Number(flight.duration.layoverMinutes) <= Number(query.maxLayover) * 60 &&
+      (isDirect || Number(flight.duration.layoverMinutes) >= Number(query.minLayover) * 60) &&
+      (isDirect || Number(flight.duration.layoverMinutes) <= Number(query.maxLayover) * 60) &&
       isFlightTimingValid(flight, options)
     );
   });
+}
+
+function matchesConnection(flight, isDirect, preference, viaAirport, fallbackValue) {
+  if (preference === 'direct') {
+    return isDirect;
+  }
+
+  if (preference === 'via') {
+    return !isDirect && matchesRoutePoint(flight.route.stopover, viaAirport, fallbackValue);
+  }
+
+  return true;
 }
 
 function resolveQueryAirport(query, fieldName) {

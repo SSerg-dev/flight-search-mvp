@@ -1,11 +1,12 @@
-import { findAirportById, formatAirportOptionValue, resolveAirport } from '../services/airportMetadataService.js';
+import { findAirportById, findAirportByIata, formatAirportOptionValue, resolveAirport } from '../services/airportMetadataService.js';
 
 export const searchFormDefaults = {
   tripType: 'oneWay',
   fromAirportId: 'oa:3422',
   from: 'Boston',
-  viaAirportId: 'oa:317457',
-  via: 'Istanbul',
+  viaAirportId: '',
+  via: '',
+  connectionPreference: 'all',
   toAirportId: 'oa:6489',
   to: 'Saint Petersburg',
   departureDate: '2026-10-01',
@@ -83,6 +84,64 @@ function createAirportCombobox({ id, label, values, errors, optional = false }) 
   `;
 }
 
+function createViaRouteField({ values, errors, routeOptions = [], routeOptionsStatus = 'idle' }) {
+  const selectedValue = getSelectedViaRouteValue(values);
+  const options = [...routeOptions];
+  const selectedAirport = findAirportById(values?.viaAirportId) ?? resolveAirport(values?.via);
+
+  if (
+    values?.connectionPreference === 'via' &&
+    selectedAirport &&
+    !options.some((option) => option.code === selectedAirport.iata)
+  ) {
+    options.push({
+      key: `via:${selectedAirport.iata}`,
+      type: 'via',
+      code: selectedAirport.iata,
+      airportId: selectedAirport.id,
+      label: `${selectedAirport.iata} — ${selectedAirport.name}, ${selectedAirport.city}`,
+    });
+  }
+
+  const statusText = routeOptionsStatus === 'loading'
+    ? '<p class="text-xs font-normal text-slate-500 dark:text-slate-400">Finding available routes…</p>'
+    : '<p class="text-xs font-normal text-slate-500 dark:text-slate-400">Options update from the flights available for this route and date range.</p>';
+
+  return `
+    <label class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300" for="via">
+      <span class="flex min-h-5 items-center justify-between gap-2">Via <span class="font-normal text-slate-500 dark:text-slate-400">Dynamic</span></span>
+      <select
+        class="${inputClass} w-full"
+        id="via"
+        name="viaRoute"
+        ${createErrorAttributes('via', errors)}
+      >
+        <option value="all"${selectedValue === 'all' ? ' selected' : ''}>All available routes</option>
+        ${options.map((option) => createViaRouteOption(option, selectedValue)).join('')}
+      </select>
+      ${statusText}
+      ${createFieldError('via', errors)}
+    </label>
+  `;
+}
+
+function createViaRouteOption(option, selectedValue) {
+  const value = option.type === 'direct' ? 'direct' : `via:${option.code}`;
+
+  return `<option value="${escapeHtml(value)}"${selectedValue === value ? ' selected' : ''}>${escapeHtml(option.label)}</option>`;
+}
+
+function getSelectedViaRouteValue(values) {
+  if (values?.connectionPreference === 'direct') return 'direct';
+
+  if (values?.connectionPreference === 'via') {
+    const airport = findAirportById(values.viaAirportId) ?? resolveAirport(values.via);
+    return airport ? `via:${airport.iata}` : 'all';
+  }
+
+  return 'all';
+}
+
 function createNumberField({ id, label, value, min, errors }) {
   return `
     <label class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300" for="${id}">
@@ -122,15 +181,16 @@ export function createSearchQueryFromFormData(formData) {
   const dateRangeStart = String(formData.get('dateRangeStart') ?? '');
   const tripType = String(formData.get('tripType') ?? 'oneWay');
   const from = normalizeRouteSelection(formData, 'from');
-  const via = normalizeRouteSelection(formData, 'via');
+  const viaSelection = normalizeViaRouteSelection(formData);
   const to = normalizeRouteSelection(formData, 'to');
 
   return {
     tripType,
     fromAirportId: from.airportId,
     from: from.value,
-    viaAirportId: via.airportId,
-    via: via.value,
+    viaAirportId: viaSelection.airportId,
+    via: viaSelection.value,
+    connectionPreference: viaSelection.connectionPreference,
     toAirportId: to.airportId,
     to: to.value,
     departureDate: dateRangeStart,
@@ -146,6 +206,33 @@ export function createSearchQueryFromFormData(formData) {
     minLayover: toOptionalNumber(formData.get('minLayover')),
     maxLayover: toOptionalNumber(formData.get('maxLayover')),
   };
+}
+
+function normalizeViaRouteSelection(formData) {
+  if (!formData.has('viaRoute')) {
+    const via = normalizeRouteSelection(formData, 'via');
+
+    return {
+      ...via,
+      connectionPreference: via.value ? 'via' : 'all',
+    };
+  }
+
+  const routeValue = String(formData.get('viaRoute') ?? 'all').trim();
+
+  if (routeValue === 'direct') {
+    return { airportId: '', value: '', connectionPreference: 'direct' };
+  }
+
+  if (routeValue.startsWith('via:')) {
+    const airport = findAirportByIata(routeValue.slice(4));
+
+    if (airport) {
+      return { airportId: airport.id, value: airport.city, connectionPreference: 'via' };
+    }
+  }
+
+  return { airportId: '', value: '', connectionPreference: 'all' };
 }
 
 function normalizeRouteSelection(formData, fieldName) {
@@ -166,6 +253,8 @@ export function createSearchForm({
   errors = {},
   isLoading = false,
   savedSearches = [],
+  routeOptions = [],
+  routeOptionsStatus = 'idle',
 } = {}) {
   const buttonText = isLoading ? 'Searching...' : 'Search Flights';
   const loadingAttributes = isLoading ? 'disabled aria-busy="true"' : 'aria-busy="false"';
@@ -197,13 +286,7 @@ export function createSearchForm({
               values,
               errors,
             })}
-            ${createAirportCombobox({
-              id: 'via',
-              label: 'Via',
-              values,
-              errors,
-              optional: true,
-            })}
+            ${createViaRouteField({ values, errors, routeOptions, routeOptionsStatus })}
             ${createAirportCombobox({
               id: 'to',
               label: 'To',

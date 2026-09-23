@@ -176,6 +176,57 @@ test('normalizes direct flights when Via is empty', () => {
   assert.equal(flight.duration.layoverMinutes, 0);
 });
 
+test('keeps direct and one-stop flights while discovering available connections', () => {
+  const directOffer = {
+    price: 500,
+    total_duration: 510,
+    flights: [
+      {
+        departure_airport: { name: 'Logan International Airport', id: 'BOS', time: '2026-10-01 20:00' },
+        arrival_airport: { name: 'Pulkovo Airport', id: 'LED', time: '2026-10-02 10:30' },
+        airline: 'Example Air',
+        flight_number: 'EA 10',
+        duration: 510,
+      },
+    ],
+    layovers: [],
+  };
+
+  const results = normalizeSerpApiFlightResults(
+    {
+      best_flights: [directOffer, serpapiGoogleFlightsFixture.best_flights[0]],
+    },
+    { query: { ...query, via: '', viaAirportId: '', connectionPreference: 'all' }, currentDate },
+  );
+
+  assert.equal(results.length, 2);
+  assert.deepEqual(results.map((flight) => flight.route.stopover?.code ?? 'direct'), ['direct', 'IST']);
+});
+
+test('keeps only nonstop flights for the direct preference', () => {
+  const response = structuredClone(serpapiGoogleFlightsFixture);
+  const directOffer = structuredClone(response.best_flights[0]);
+  directOffer.flights = [
+    {
+      departure_airport: { name: 'Logan International Airport', id: 'BOS', time: '2026-10-01 20:00' },
+      arrival_airport: { name: 'Pulkovo Airport', id: 'LED', time: '2026-10-02 10:30' },
+      airline: 'Example Air',
+      flight_number: 'EA 10',
+      duration: 510,
+    },
+  ];
+  directOffer.layovers = [];
+  response.best_flights.push(directOffer);
+
+  const results = normalizeSerpApiFlightResults(response, {
+    query: { ...query, via: '', viaAirportId: '', connectionPreference: 'direct' },
+    currentDate,
+  });
+
+  assert.equal(results.length, 1);
+  assert.equal(results[0].route.stopover, null);
+});
+
 test('ignores multi-stop SerpApi results instead of displaying the wrong stopover', () => {
   const response = {
     best_flights: [

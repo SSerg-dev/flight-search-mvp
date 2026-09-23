@@ -48,3 +48,18 @@ test('search results render round-trip result objects as paired rows', () => {
   assert.doesNotMatch(markup, /Outbound flights/);
   assert.doesNotMatch(markup, /Return flights/);
 });
+
+test('search results group all-route searches by connection with direct first', () => {
+  const directFlight = {
+    ...structuredClone(mockFlights[0]),
+    route: { ...structuredClone(mockFlights[0].route), stopover: null },
+    segments: [structuredClone(mockFlights[0].segments[0])],
+  };
+  const markup = createSearchResultsMarkup([mockFlights[0], directFlight], {
+    query: { ...roundTripQuery, tripType: 'oneWay', connectionPreference: 'all' },
+  });
+
+  assert.match(markup, /Direct flight/);
+  assert.match(markup, /IST — Istanbul Airport, Istanbul/);
+  assert.ok(markup.indexOf('Direct flight') < markup.indexOf('IST — Istanbul Airport, Istanbul'));
+});

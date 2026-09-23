@@ -113,7 +113,7 @@ function buildSerpApiUrl({ apiBaseUrl, apiKey, payload }) {
   url.searchParams.set('outbound_date', payload.departureDate);
   url.searchParams.set('adults', String(Number(payload.adults)));
   url.searchParams.set('currency', 'USD');
-  url.searchParams.set('stops', payload.route.via?.iata ? '2' : '0');
+  url.searchParams.set('stops', payload.connectionPreference === 'direct' ? '1' : '2');
   url.searchParams.set('deep_search', 'true');
   url.searchParams.set('api_key', apiKey);
 
@@ -168,6 +168,7 @@ function isValidProxyPayload(payload) {
     (!payload.route?.via || hasText(payload.route.via.iata)) &&
     hasText(payload.route?.to?.iata) &&
     hasText(payload.departureDate) &&
+    (!payload.connectionPreference || ['all', 'direct', 'via'].includes(payload.connectionPreference)) &&
     Number.isFinite(Number(payload.adults)) &&
     Number(payload.adults) >= 1
   );

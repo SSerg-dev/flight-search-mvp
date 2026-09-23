@@ -68,6 +68,7 @@ function normalizeSearchQuery(query = {}) {
     from: String(query.from ?? '').trim(),
     viaAirportId: String(query.viaAirportId ?? '').trim(),
     via: String(query.via ?? '').trim(),
+    connectionPreference: normalizeConnectionPreference(query),
     toAirportId: String(query.toAirportId ?? '').trim(),
     to: String(query.to ?? '').trim(),
     departureDate: dateRangeStart,
@@ -83,6 +84,14 @@ function normalizeSearchQuery(query = {}) {
     minLayover: toOptionalNumber(query.minLayover),
     maxLayover: toOptionalNumber(query.maxLayover),
   };
+}
+
+function normalizeConnectionPreference(query) {
+  if (['all', 'direct', 'via'].includes(query.connectionPreference)) {
+    return query.connectionPreference;
+  }
+
+  return hasText(query.via) || hasText(query.viaAirportId) ? 'via' : 'all';
 }
 
 function createSavedSearchId(query) {

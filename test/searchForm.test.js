@@ -10,6 +10,7 @@ test('search form exposes the approved Wave 2 data model fields', () => {
     'from',
     'viaAirportId',
     'via',
+    'connectionPreference',
     'toAirportId',
     'to',
     'departureDate',
@@ -47,8 +48,7 @@ test('search form renders all approved fields and the submit button', () => {
 
   assert.match(markup, /name="fromAirportId"/);
   assert.match(markup, /name="fromSearch"/);
-  assert.match(markup, /name="viaAirportId"/);
-  assert.match(markup, /name="viaSearch"/);
+  assert.match(markup, /name="viaRoute"/);
   assert.match(markup, /name="toAirportId"/);
   assert.match(markup, /name="toSearch"/);
   assert.match(markup, /name="dateRangeStart"/);
@@ -86,21 +86,28 @@ test('search form shows return date fields for round trips', () => {
   assert.match(markup, /value="2026-10-25"/);
 });
 
-test('search form renders accessible airport comboboxes', () => {
+test('search form renders accessible endpoint comboboxes and a dynamic Via selector', () => {
   const markup = searchForm.createSearchForm();
 
   assert.match(markup, /id="from"[\s\S]*role="combobox"[\s\S]*aria-controls="from-options"/);
-  assert.match(markup, /id="via"[\s\S]*role="combobox"[\s\S]*aria-controls="via-options"/);
+  assert.match(markup, /id="via"[\s\S]*name="viaRoute"/);
   assert.match(markup, /id="to"[\s\S]*role="combobox"[\s\S]*aria-controls="to-options"/);
-  assert.match(markup, /Via[\s\S]*Optional/);
+  assert.match(markup, /Via[\s\S]*Dynamic/);
+  assert.match(markup, /All available routes/);
 });
 
-test('search form renders selected airports with IATA, name, city, and country', () => {
-  const markup = searchForm.createSearchForm();
+test('search form renders endpoint airports and discovered Via options', () => {
+  const markup = searchForm.createSearchForm({
+    routeOptions: [
+      { key: 'direct', type: 'direct', code: '', label: 'Direct flight' },
+      { key: 'via:IST', type: 'via', code: 'IST', label: 'IST — Istanbul Airport, Istanbul' },
+    ],
+  });
 
   assert.match(markup, /value="BOS — Logan International Airport, Boston, United States"/);
-  assert.match(markup, /value="IST — Istanbul Airport, Istanbul, Turkey"/);
   assert.match(markup, /value="LED — Pulkovo Airport, Saint Petersburg, Russia"/);
+  assert.match(markup, /value="direct"[^>]*>Direct flight/);
+  assert.match(markup, /value="via:IST"[^>]*>IST — Istanbul Airport, Istanbul/);
   assert.doesNotMatch(markup, /<datalist/);
 });
 
@@ -120,7 +127,7 @@ test('search form renders validation errors near related fields', () => {
   assert.match(markup, /data-error-for="layover"[\s\S]*Min Layover Hours cannot be greater than Max Layover Hours\./);
 });
 
-test('creates the Wave 3 search query shape from submitted form data', () => {
+test('creates a Via search query from legacy submitted form data', () => {
   const formData = new FormData();
 
   formData.set('from', 'Boston');
@@ -133,7 +140,12 @@ test('creates the Wave 3 search query shape from submitted form data', () => {
   formData.set('minLayover', '3');
   formData.set('maxLayover', '12');
 
-  assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), searchForm.searchFormDefaults);
+  assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), {
+    ...searchForm.searchFormDefaults,
+    viaAirportId: 'oa:317457',
+    via: 'Istanbul',
+    connectionPreference: 'via',
+  });
 });
 
 test('normalizes selected IATA-aware airport labels into route city values', () => {
@@ -149,7 +161,12 @@ test('normalizes selected IATA-aware airport labels into route city values', () 
   formData.set('minLayover', '3');
   formData.set('maxLayover', '12');
 
-  assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), searchForm.searchFormDefaults);
+  assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), {
+    ...searchForm.searchFormDefaults,
+    viaAirportId: 'oa:317457',
+    via: 'Istanbul',
+    connectionPreference: 'via',
+  });
 });
 
 test('stores stable airport IDs and allows Via to be empty', () => {
@@ -174,6 +191,7 @@ test('stores stable airport IDs and allows Via to be empty', () => {
   assert.equal(query.from, 'Boston');
   assert.equal(query.viaAirportId, '');
   assert.equal(query.via, '');
+  assert.equal(query.connectionPreference, 'all');
   assert.equal(query.toAirportId, 'oa:6489');
   assert.equal(query.to, 'Saint Petersburg');
 });
@@ -195,6 +213,9 @@ test('creates a round-trip search query shape from submitted form data', () => {
 
   assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), {
     ...searchForm.searchFormDefaults,
+    viaAirportId: 'oa:317457',
+    via: 'Istanbul',
+    connectionPreference: 'via',
     tripType: 'roundTrip',
     returnDateRange: {
       start: '2026-10-20',
@@ -221,6 +242,29 @@ test('airport suggestions do not change submitted route text values', () => {
   assert.equal(query.from, 'Boston');
   assert.equal(query.via, 'Istanbul');
   assert.equal(query.to, 'Saint Petersburg');
+});
+
+test('creates direct and discovered Via preferences from the dynamic selector', () => {
+  const formData = new FormData();
+  formData.set('fromAirportId', 'oa:3422');
+  formData.set('fromSearch', 'Boston');
+  formData.set('toAirportId', 'oa:6489');
+  formData.set('toSearch', 'Saint Petersburg');
+  formData.set('tripType', 'oneWay');
+  formData.set('dateRangeStart', '2026-10-01');
+  formData.set('dateRangeEnd', '2026-10-10');
+  formData.set('adults', '2');
+  formData.set('minLayover', '3');
+  formData.set('maxLayover', '12');
+
+  formData.set('viaRoute', 'direct');
+  assert.equal(searchForm.createSearchQueryFromFormData(formData).connectionPreference, 'direct');
+
+  formData.set('viaRoute', 'via:IST');
+  const viaQuery = searchForm.createSearchQueryFromFormData(formData);
+  assert.equal(viaQuery.connectionPreference, 'via');
+  assert.equal(viaQuery.viaAirportId, 'oa:317457');
+  assert.equal(viaQuery.via, 'Istanbul');
 });
 
 test('escapes submitted values and validation messages before rendering', () => {
@@ -301,7 +345,7 @@ test('search form renders saved searches when provided', () => {
 
   assert.match(markup, /Recent searches/);
   assert.match(markup, /data-saved-search-id="search-123"/);
-  assert.match(markup, /Boston to Istanbul to Saint Petersburg/);
+  assert.match(markup, /Boston to Saint Petersburg/);
   assert.match(markup, /Clear/);
 });
 
