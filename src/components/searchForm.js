@@ -115,20 +115,25 @@ function createViaRouteField({ values, errors, routeOptions = [], routeOptionsSt
     : '<p class="text-xs font-normal text-slate-500 dark:text-slate-400">Options update from the flights available for this route and date range.</p>';
 
   return `
-    <label class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300" for="via">
-      <span class="flex min-h-5 items-center justify-between gap-2">Via <span class="font-normal text-slate-500 dark:text-slate-400">Dynamic</span></span>
-      <select
-        class="${inputClass} w-full"
-        id="via"
-        name="viaRoute"
-        ${createErrorAttributes('via', errors)}
-      >
-        <option value="all"${selectedValue === 'all' ? ' selected' : ''}>All available routes</option>
-        ${options.map((option) => createViaRouteOption(option, selectedValue)).join('')}
-      </select>
+    <div class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+      <label class="flex min-h-5 items-center justify-between gap-2" for="via">
+        <span>Via</span><span class="font-normal text-slate-500 dark:text-slate-400">Dynamic</span>
+      </label>
+      <div class="relative">
+        <select
+          class="${inputClass} w-full appearance-none pr-10"
+          id="via"
+          name="viaRoute"
+          ${createErrorAttributes('via', errors)}
+        >
+          <option value="all"${selectedValue === 'all' ? ' selected' : ''}>All available routes</option>
+          ${options.map((option) => createViaRouteOption(option, selectedValue)).join('')}
+        </select>
+        <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400" aria-hidden="true">⌄</span>
+      </div>
       ${statusText}
       ${createFieldError('via', errors)}
-    </label>
+    </div>
   `;
 }
 
@@ -298,7 +303,7 @@ export function createSearchForm({
 
           ${createTripTypeControl(values.tripType)}
 
-          <div class="grid gap-4 md:grid-cols-3">
+          <div class="grid items-start gap-4 md:grid-cols-3">
             ${createAirportCombobox({
               id: 'from',
               label: 'From',

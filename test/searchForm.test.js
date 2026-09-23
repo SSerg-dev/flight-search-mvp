@@ -328,6 +328,10 @@ test('search form includes responsive spacing and full-width mobile submit actio
 
   assert.match(markup, /py-6[\s\S]*sm:py-8[\s\S]*lg:py-10/);
   assert.match(markup, /grid[\s\S]*gap-5[\s\S]*lg:gap-6/);
+  assert.match(markup, /grid items-start gap-4 md:grid-cols-3/);
+  assert.match(markup, /<label class="flex min-h-5 items-center justify-between gap-2" for="via">/);
+  assert.match(markup, /appearance-none pr-10[\s\S]*name="viaRoute"/);
+  assert.match(markup, /pointer-events-none absolute inset-y-0 right-3[\s\S]*aria-hidden="true">⌄/);
   assert.match(markup, /w-full[\s\S]*sm:w-auto/);
 });
 
