@@ -114,6 +114,7 @@ function buildSerpApiUrl({ apiBaseUrl, apiKey, payload }) {
   url.searchParams.set('adults', String(Number(payload.adults)));
   url.searchParams.set('currency', 'USD');
   url.searchParams.set('stops', payload.route.via?.iata ? '2' : '0');
+  url.searchParams.set('deep_search', 'true');
   url.searchParams.set('api_key', apiKey);
 
   if (minLayoverMinutes > 0 && maxLayoverMinutes >= minLayoverMinutes) {

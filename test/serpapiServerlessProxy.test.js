@@ -99,6 +99,7 @@ test('SerpApi proxy requests Google Flights one-way results', async () => {
   assert.equal(url.searchParams.get('adults'), '2');
   assert.equal(url.searchParams.get('currency'), 'USD');
   assert.equal(url.searchParams.get('stops'), '2');
+  assert.equal(url.searchParams.get('deep_search'), 'true');
   assert.equal(url.searchParams.get('layover_duration'), '180,720');
   assert.equal(url.searchParams.get('api_key'), 'server-serpapi-key');
 });
