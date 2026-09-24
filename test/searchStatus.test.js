@@ -26,6 +26,20 @@ test('renders an accessible service error message', () => {
   assert.match(markup, /aria-live="assertive"/);
 });
 
+test('offers an explicit Demo fallback for a Live API rate limit', () => {
+  const markup = createSearchStatus({
+    serviceError: 'Flight API rate limit reached. Please try again later.',
+    apiMode: 'serpapi',
+  });
+
+  assert.match(markup, /id="switch-to-demo"/);
+  assert.match(markup, /Switch to Demo/);
+  assert.doesNotMatch(createSearchStatus({
+    serviceError: 'Flight API rate limit reached.',
+    apiMode: 'mock',
+  }), /Switch to Demo/);
+});
+
 test('keeps validation errors separate from service errors', () => {
   const markup = createSearchStatus({
     serviceError: 'We could not load flight results. Please try again.',

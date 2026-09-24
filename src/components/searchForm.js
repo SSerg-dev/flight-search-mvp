@@ -393,7 +393,7 @@ export function createSearchForm({
             >
               ${buttonText}
             </button>
-            ${createDataSourceBadge(apiMode)}
+            ${createDataSourceControl(apiMode)}
           </div>
         </form>
         ${createSavedSearchesMarkup(savedSearches)}
@@ -402,18 +402,48 @@ export function createSearchForm({
   `;
 }
 
-function createDataSourceBadge(apiMode) {
+function createDataSourceControl(apiMode) {
   const isLive = apiMode === 'serpapi';
-  const label = isLive ? 'Live data · SerpApi' : 'Demo data · Mock';
-  const classes = isLive
-    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-400/10 dark:text-emerald-200'
-    : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-400/10 dark:text-amber-200';
 
   return `
-            <p class="inline-flex h-9 w-fit items-center gap-2 rounded-full border px-3 text-xs font-semibold ${classes}" aria-label="Flight data source: ${label}">
-              <span class="h-2 w-2 rounded-full ${isLive ? 'bg-emerald-500' : 'bg-amber-500'}" aria-hidden="true"></span>
-              ${label}
-            </p>
+            <fieldset class="grid gap-1.5" aria-label="Flight data source">
+              <legend class="text-xs font-medium text-slate-500 dark:text-slate-400">Data source</legend>
+              <div class="inline-flex w-fit rounded-full border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-950">
+                ${createDataSourceOption({
+                  mode: 'mock',
+                  label: 'Demo',
+                  description: 'Sample data',
+                  isActive: !isLive,
+                })}
+                ${createDataSourceOption({
+                  mode: 'serpapi',
+                  label: 'Live',
+                  description: 'SerpApi',
+                  isActive: isLive,
+                })}
+              </div>
+            </fieldset>
+  `;
+}
+
+function createDataSourceOption({ mode, label, description, isActive }) {
+  const activeClasses = mode === 'serpapi'
+    ? 'bg-emerald-600 text-white shadow-sm dark:bg-emerald-500 dark:text-slate-950'
+    : 'bg-amber-500 text-slate-950 shadow-sm dark:bg-amber-400';
+  const inactiveClasses = 'text-slate-600 hover:bg-white hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white';
+
+  return `
+                <button
+                  class="inline-flex h-9 items-center gap-2 rounded-full px-3 text-xs font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-300 ${isActive ? activeClasses : inactiveClasses}"
+                  type="button"
+                  data-api-mode="${mode}"
+                  aria-pressed="${isActive}"
+                  aria-label="${label} flight data: ${description}"
+                  title="${description}"
+                >
+                  <span class="h-2 w-2 rounded-full ${mode === 'serpapi' ? 'bg-emerald-300' : 'bg-amber-700'}" aria-hidden="true"></span>
+                  ${label}
+                </button>
   `;
 }
 

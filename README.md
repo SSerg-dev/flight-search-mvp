@@ -21,6 +21,7 @@ MVP v3: SerpApi-only provider cleanup.
 - Selected airports are stored by stable dataset ID while their readable city labels remain compatible with the flight providers.
 - Departure dates must be valid future dates, and displayed flights must arrive after departure and after the current date.
 - Date range, passenger count, and layover hour filtering.
+- Explicit Demo/Live data-source switcher that persists per browser; changing modes never starts a search automatically.
 - Recent valid searches are saved in browser `localStorage`, capped to the newest five, and can be restored into the form.
 - Light and dark theme toggle saved in browser `localStorage`.
 

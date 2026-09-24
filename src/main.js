@@ -6,6 +6,7 @@ import { createSearchStatus } from './components/searchStatus.js';
 import { searchFlightOffers } from './services/flightService.js';
 import { formatRouteLocationOptionValue, searchRouteLocations } from './services/airportMetadataService.js';
 import { getServiceErrorMessage } from './utils/serviceErrorMessage.js';
+import { getInitialDataMode, persistDataMode } from './utils/flightDataMode.js';
 import { clearSavedSearches, getSavedSearches, saveSearch } from './utils/savedSearches.js';
 import { applyTheme, getInitialTheme, getNextTheme, persistTheme } from './utils/theme.js';
 import { validateSearchQuery } from './utils/validation.js';
@@ -34,6 +35,7 @@ const appState = {
   routeOptionsStatus: 'idle',
   routeDiscoverySignature: '',
   routeDiscoveryResults: undefined,
+  apiMode: getInitialDataMode(apiConfig.mode),
 };
 
 renderApp();
@@ -48,11 +50,12 @@ function renderApp() {
       savedSearches: appState.savedSearches,
       routeOptions: appState.routeOptions,
       routeOptionsStatus: appState.routeOptionsStatus,
-      apiMode: apiConfig.mode,
+      apiMode: appState.apiMode,
     }) +
     createSearchStatus({
       isLoading: appState.isLoading,
       serviceError: appState.serviceError,
+      apiMode: appState.apiMode,
     }) +
     createSearchResultsMarkup(appState.results, {
       sortBy: appState.sortBy,
@@ -69,6 +72,10 @@ function renderApp() {
     button.addEventListener('click', handleSavedSearchSelect);
   });
   app.querySelector('#clear-saved-searches')?.addEventListener('click', handleClearSavedSearches);
+  app.querySelectorAll('[data-api-mode]').forEach((button) => {
+    button.addEventListener('click', handleApiModeChange);
+  });
+  app.querySelector('#switch-to-demo')?.addEventListener('click', () => setApiMode('mock'));
   form.querySelectorAll('input[name="tripType"]').forEach((input) => {
     input.addEventListener('change', handleTripTypeChange);
   });
@@ -242,7 +249,9 @@ async function handleSearchSubmit(event) {
     if (hasCachedDiscovery) {
       appState.results = filterFlightResultsByConnection(appState.routeDiscoveryResults, query);
     } else {
-      const discoveryResults = await searchFlightOffers(createDiscoveryQuery(query));
+      const discoveryResults = await searchFlightOffers(createDiscoveryQuery(query), {
+        env: createSearchApiEnv(),
+      });
 
       appState.routeDiscoverySignature = discoverySignature;
       appState.routeDiscoveryResults = discoveryResults;
@@ -372,4 +381,33 @@ function handleThemeToggle() {
   applyTheme(appState.theme);
   persistTheme(appState.theme);
   renderApp();
+}
+
+function handleApiModeChange(event) {
+  setApiMode(event.currentTarget.dataset.apiMode);
+}
+
+function setApiMode(mode) {
+  if (!['mock', 'serpapi'].includes(mode) || mode === appState.apiMode || appState.isLoading) {
+    return;
+  }
+
+  appState.apiMode = mode;
+  persistDataMode(mode);
+  appState.results = undefined;
+  appState.lastQuery = undefined;
+  appState.serviceError = '';
+  appState.routeOptions = [];
+  appState.routeOptionsStatus = 'idle';
+  appState.routeDiscoverySignature = '';
+  appState.routeDiscoveryResults = undefined;
+  renderApp();
+}
+
+function createSearchApiEnv() {
+  return {
+    ...import.meta.env,
+    VITE_FLIGHT_API_MODE: appState.apiMode,
+    VITE_FLIGHT_API_PROXY_URL: apiConfig.proxyUrl || '/api/serpapi-flights',
+  };
 }

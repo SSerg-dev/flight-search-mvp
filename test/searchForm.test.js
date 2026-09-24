@@ -368,14 +368,17 @@ test('search form disables submit button while loading', () => {
   assert.match(markup, /Searching/);
 });
 
-test('search form shows the active flight data source beside the search button', () => {
+test('search form renders an accessible Demo and Live data source control', () => {
   const mockMarkup = searchForm.createSearchForm({ apiMode: 'mock' });
   const liveMarkup = searchForm.createSearchForm({ apiMode: 'serpapi' });
 
-  assert.match(mockMarkup, /Search Flights[\s\S]*Flight data source: Demo data · Mock/);
-  assert.match(mockMarkup, /bg-amber-50/);
-  assert.match(liveMarkup, /Search Flights[\s\S]*Flight data source: Live data · SerpApi/);
-  assert.match(liveMarkup, /bg-emerald-50/);
+  assert.match(mockMarkup, /Search Flights[\s\S]*aria-label="Flight data source"/);
+  assert.match(mockMarkup, /data-api-mode="mock"[\s\S]*aria-pressed="true"/);
+  assert.match(mockMarkup, /data-api-mode="serpapi"[\s\S]*aria-pressed="false"/);
+  assert.match(mockMarkup, /Demo[\s\S]*Live/);
+  assert.match(liveMarkup, /data-api-mode="mock"[\s\S]*aria-pressed="false"/);
+  assert.match(liveMarkup, /data-api-mode="serpapi"[\s\S]*aria-pressed="true"/);
+  assert.match(liveMarkup, /bg-emerald-600/);
 });
 
 test('search form renders an accessible theme toggle with current state', () => {
