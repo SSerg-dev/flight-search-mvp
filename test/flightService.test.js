@@ -85,6 +85,8 @@ test('searchFlightOffers returns outbound and return sections for round trips', 
   const results = await searchFlightOffers(
     {
       ...baseQuery,
+      fromAirportId: 'oa:3422',
+      toAirportId: 'oa:6489',
       tripType: 'roundTrip',
       returnDateRange: {
         start: '2026-10-20',
@@ -239,6 +241,8 @@ test('searchFlightOffers sends reversed route and return dates for round-trip pr
   await searchFlightOffers(
     {
       ...baseQuery,
+      fromAirportId: 'oa:3422',
+      toAirportId: 'oa:6489',
       tripType: 'roundTrip',
       returnDateRange: {
         start: '2026-10-20',

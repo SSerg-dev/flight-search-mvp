@@ -251,6 +251,10 @@ async function handleSearchSubmit(event) {
 function handleSearchCriteriaChange(event) {
   const fieldName = event.target?.name;
 
+  if (event.target?.type === 'date' && !event.target.validity.valid) {
+    return;
+  }
+
   if (fieldName === 'viaRoute' || fieldName === 'tripType') {
     if (fieldName === 'viaRoute') {
       const query = createSearchQueryFromFormData(new FormData(event.currentTarget));

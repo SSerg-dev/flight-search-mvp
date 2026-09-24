@@ -6,6 +6,7 @@ import {
   resolveAirport,
   resolveRouteLocation,
 } from '../services/airportMetadataService.js';
+import { getTodayDateString } from '../utils/dateTime.js';
 
 export const searchFormDefaults = {
   tripType: 'oneWay',
@@ -172,7 +173,7 @@ function createNumberField({ id, label, value, min, errors }) {
   `;
 }
 
-function createDateField({ id, label, value, errors }) {
+function createDateField({ id, label, value, min, errors }) {
   return `
     <label class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300" for="${id}">
       <span class="block min-h-5">${label}</span>
@@ -181,6 +182,7 @@ function createDateField({ id, label, value, errors }) {
         id="${id}"
         name="${id}"
         type="date"
+        min="${escapeHtml(min)}"
         value="${escapeHtml(value)}"
         ${createErrorAttributes(id, errors)}
       />
@@ -282,6 +284,7 @@ export function createSearchForm({
 } = {}) {
   const buttonText = isLoading ? 'Searching...' : 'Search Flights';
   const loadingAttributes = isLoading ? 'disabled aria-busy="true"' : 'aria-busy="false"';
+  const minimumDepartureDate = getNextDateString(getTodayDateString());
 
   return `
     <main class="bg-slate-50 px-4 py-6 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
@@ -326,19 +329,21 @@ export function createSearchForm({
                 id: 'dateRangeStart',
                 label: 'Departure Date Start',
                 value: values.dateRange.start,
+                min: minimumDepartureDate,
                 errors,
               })}
               ${createDateField({
                 id: 'dateRangeEnd',
                 label: 'Departure Date End',
                 value: values.dateRange.end,
+                min: values.dateRange.start || minimumDepartureDate,
                 errors,
               })}
             </div>
             ${createFieldError('dateRange', errors)}
           </div>
 
-          ${createReturnDateRangeFields(values, errors)}
+          ${createReturnDateRangeFields(values, errors, minimumDepartureDate)}
 
           <div class="grid gap-4 md:grid-cols-3">
             ${createNumberField({
@@ -476,7 +481,7 @@ function createTripTypeOption({ value, label, selectedTripType }) {
   `;
 }
 
-function createReturnDateRangeFields(values, errors) {
+function createReturnDateRangeFields(values, errors, minimumDepartureDate) {
   if (values.tripType !== 'roundTrip') {
     return '';
   }
@@ -489,18 +494,31 @@ function createReturnDateRangeFields(values, errors) {
           id: 'returnDateRangeStart',
           label: 'Return Date Start',
           value: values.returnDateRange?.start ?? '',
+          min: values.dateRange?.end || values.dateRange?.start || minimumDepartureDate,
           errors,
         })}
         ${createDateField({
           id: 'returnDateRangeEnd',
           label: 'Return Date End',
           value: values.returnDateRange?.end ?? '',
+          min: values.returnDateRange?.start || values.dateRange?.end || values.dateRange?.start || minimumDepartureDate,
           errors,
         })}
       </div>
       ${createFieldError('returnDateRange', errors)}
     </div>
   `;
+}
+
+function getNextDateString(value) {
+  const date = new Date(`${value}T00:00:00Z`);
+
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
 }
 
 function toOptionalNumber(value) {

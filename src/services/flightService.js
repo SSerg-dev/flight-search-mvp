@@ -45,7 +45,9 @@ function createReturnSearchQuery(query) {
   return {
     ...query,
     tripType: 'oneWay',
+    fromAirportId: query.toAirportId,
     from: query.to,
+    toAirportId: query.fromAirportId,
     to: query.from,
     via: query.via,
     departureDate: returnDateRange.start,

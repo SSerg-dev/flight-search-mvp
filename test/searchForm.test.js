@@ -84,6 +84,15 @@ test('search form shows return date fields for round trips', () => {
   assert.match(markup, /name="returnDateRangeEnd"/);
   assert.match(markup, /value="2026-10-20"/);
   assert.match(markup, /value="2026-10-25"/);
+  assert.match(markup, /name="returnDateRangeStart"[\s\S]*min="2026-10-10"[\s\S]*value="2026-10-20"/);
+  assert.match(markup, /name="returnDateRangeEnd"[\s\S]*min="2026-10-20"[\s\S]*value="2026-10-25"/);
+});
+
+test('search form constrains departure date inputs to valid chronological ranges', () => {
+  const markup = searchForm.createSearchForm();
+
+  assert.match(markup, /name="dateRangeStart"[\s\S]*min="\d{4}-\d{2}-\d{2}"[\s\S]*value="2026-10-01"/);
+  assert.match(markup, /name="dateRangeEnd"[\s\S]*min="2026-10-01"[\s\S]*value="2026-10-10"/);
 });
 
 test('search form renders accessible endpoint comboboxes and a dynamic Via selector', () => {
