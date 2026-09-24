@@ -60,6 +60,11 @@ Do not put provider API keys, API secrets, bearer tokens, or access tokens in fr
 
 SerpApi Google Flights is the active MVP provider. Mock mode remains the default local/test path.
 
+Production builds default to SerpApi through `/api/serpapi-flights`, so a Vercel
+deployment does not require public `VITE_*` variables. Set only the server-side
+`SERPAPI_API_KEY` in the Vercel project environment. You can still explicitly set
+`VITE_FLIGHT_API_MODE=mock` to deploy a demo build.
+
 Server-side SerpApi proxy configuration:
 
 ```text

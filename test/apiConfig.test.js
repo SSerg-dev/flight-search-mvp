@@ -13,6 +13,26 @@ test('uses mock mode when API mode is missing', () => {
   });
 });
 
+test('uses the SerpApi proxy by default in production builds', () => {
+  assert.deepEqual(getApiConfig({ PROD: true }), {
+    mode: 'serpapi',
+    requestedMode: 'serpapi',
+    proxyUrl: '/api/serpapi-flights',
+    isRealApiEnabled: true,
+    errors: {},
+  });
+});
+
+test('allows production builds to explicitly select mock mode', () => {
+  assert.deepEqual(getApiConfig({ PROD: true, VITE_FLIGHT_API_MODE: 'mock' }), {
+    mode: 'mock',
+    requestedMode: 'mock',
+    proxyUrl: '/api/serpapi-flights',
+    isRealApiEnabled: false,
+    errors: {},
+  });
+});
+
 test('uses mock mode when API mode is explicitly mock', () => {
   assert.deepEqual(getApiConfig({ VITE_FLIGHT_API_MODE: 'mock' }), {
     mode: 'mock',

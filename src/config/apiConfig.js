@@ -4,8 +4,17 @@ export const FLIGHT_API_MODES = {
 };
 
 export function getApiConfig(env = getDefaultEnv()) {
-  const requestedMode = normalizeMode(env.VITE_FLIGHT_API_MODE);
-  const proxyUrl = String(env.VITE_FLIGHT_API_PROXY_URL ?? '').trim();
+  const productionDefaults = env.PROD
+    ? {
+        mode: FLIGHT_API_MODES.SERPAPI,
+        proxyUrl: '/api/serpapi-flights',
+      }
+    : {
+        mode: FLIGHT_API_MODES.MOCK,
+        proxyUrl: '',
+      };
+  const requestedMode = normalizeMode(env.VITE_FLIGHT_API_MODE, productionDefaults.mode);
+  const proxyUrl = String(env.VITE_FLIGHT_API_PROXY_URL ?? productionDefaults.proxyUrl).trim();
   const errors = {};
 
   if (!Object.values(FLIGHT_API_MODES).includes(requestedMode)) {
@@ -53,8 +62,8 @@ function getModeLabel(mode) {
   return 'Flight API';
 }
 
-function normalizeMode(value) {
-  return String(value ?? FLIGHT_API_MODES.MOCK).trim().toLowerCase() || FLIGHT_API_MODES.MOCK;
+function normalizeMode(value, fallbackMode = FLIGHT_API_MODES.MOCK) {
+  return String(value ?? fallbackMode).trim().toLowerCase() || fallbackMode;
 }
 
 function getDefaultEnv() {
