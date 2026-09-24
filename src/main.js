@@ -1,5 +1,6 @@
 import './styles/input.css';
 import { createSearchForm, createSearchQueryFromFormData, searchFormDefaults } from './components/searchForm.js';
+import { getApiConfig } from './config/apiConfig.js';
 import { createSearchResultsMarkup } from './components/searchResults.js';
 import { createSearchStatus } from './components/searchStatus.js';
 import { searchFlightOffers } from './services/flightService.js';
@@ -15,6 +16,7 @@ import {
 
 const app = document.querySelector('#app');
 const initialTheme = getInitialTheme();
+const apiConfig = getApiConfig();
 
 applyTheme(initialTheme);
 
@@ -46,6 +48,7 @@ function renderApp() {
       savedSearches: appState.savedSearches,
       routeOptions: appState.routeOptions,
       routeOptionsStatus: appState.routeOptionsStatus,
+      apiMode: apiConfig.mode,
     }) +
     createSearchStatus({
       isLoading: appState.isLoading,

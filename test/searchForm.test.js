@@ -368,6 +368,16 @@ test('search form disables submit button while loading', () => {
   assert.match(markup, /Searching/);
 });
 
+test('search form shows the active flight data source beside the search button', () => {
+  const mockMarkup = searchForm.createSearchForm({ apiMode: 'mock' });
+  const liveMarkup = searchForm.createSearchForm({ apiMode: 'serpapi' });
+
+  assert.match(mockMarkup, /Search Flights[\s\S]*Flight data source: Demo data · Mock/);
+  assert.match(mockMarkup, /bg-amber-50/);
+  assert.match(liveMarkup, /Search Flights[\s\S]*Flight data source: Live data · SerpApi/);
+  assert.match(liveMarkup, /bg-emerald-50/);
+});
+
 test('search form renders an accessible theme toggle with current state', () => {
   const markup = searchForm.createSearchForm({ theme: 'dark' });
 

@@ -295,6 +295,7 @@ export function createSearchForm({
   savedSearches = [],
   routeOptions = [],
   routeOptionsStatus = 'idle',
+  apiMode = 'mock',
 } = {}) {
   const buttonText = isLoading ? 'Searching...' : 'Search Flights';
   const loadingAttributes = isLoading ? 'disabled aria-busy="true"' : 'aria-busy="false"';
@@ -384,7 +385,7 @@ export function createSearchForm({
           </div>
           ${createFieldError('layover', errors)}
 
-          <div class="flex justify-stretch sm:justify-start">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
             <button
               class="h-11 w-full rounded bg-sky-600 px-5 text-sm font-semibold text-white transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 focus:ring-offset-2 focus:ring-offset-white dark:bg-sky-500 dark:hover:bg-sky-400 dark:focus:ring-sky-300 dark:focus:ring-offset-slate-900 sm:w-auto"
               type="submit"
@@ -392,11 +393,27 @@ export function createSearchForm({
             >
               ${buttonText}
             </button>
+            ${createDataSourceBadge(apiMode)}
           </div>
         </form>
         ${createSavedSearchesMarkup(savedSearches)}
       </section>
     </main>
+  `;
+}
+
+function createDataSourceBadge(apiMode) {
+  const isLive = apiMode === 'serpapi';
+  const label = isLive ? 'Live data · SerpApi' : 'Demo data · Mock';
+  const classes = isLive
+    ? 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-400/10 dark:text-emerald-200'
+    : 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/40 dark:bg-amber-400/10 dark:text-amber-200';
+
+  return `
+            <p class="inline-flex h-9 w-fit items-center gap-2 rounded-full border px-3 text-xs font-semibold ${classes}" aria-label="Flight data source: ${label}">
+              <span class="h-2 w-2 rounded-full ${isLive ? 'bg-emerald-500' : 'bg-amber-500'}" aria-hidden="true"></span>
+              ${label}
+            </p>
   `;
 }
 
