@@ -223,6 +223,25 @@ test('SerpApi proxy maps rate limits safely', async () => {
   });
 });
 
+test('SerpApi proxy maps rate-limit errors returned with a successful status', async () => {
+  const response = await createSerpApiProxyHandler({
+    env,
+    fetchImpl: async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ error: 'Your account has run out of searches.' }),
+    }),
+  })({
+    method: 'POST',
+    body: JSON.stringify(proxyPayload),
+  });
+
+  assert.equal(response.status, 429);
+  assert.deepEqual(JSON.parse(response.body), {
+    error: 'Flight API rate limit reached. Please try again later.',
+  });
+});
+
 test('SerpApi proxy validates request payload before calling SerpApi', async () => {
   const response = await createSerpApiProxyHandler({
     env,

@@ -73,7 +73,6 @@ function renderApp() {
     select.addEventListener('change', handleSortChange);
   });
 
-  discoverAvailableConnections(form);
 }
 
 function initializeAirportComboboxes(form) {
@@ -222,6 +221,10 @@ async function handleSearchSubmit(event) {
     return;
   }
 
+  const discoverySignature = createRouteDiscoverySignature(query);
+  const hasCachedDiscovery =
+    discoverySignature === appState.routeDiscoverySignature && appState.routeDiscoveryResults;
+
   appState.values = query;
   appState.errors = {};
   appState.results = undefined;
@@ -229,19 +232,28 @@ async function handleSearchSubmit(event) {
   appState.isLoading = true;
   appState.serviceError = '';
   appState.savedSearches = saveSearch(query);
+  appState.routeOptionsStatus = hasCachedDiscovery ? 'loaded' : 'loading';
   renderApp();
 
   try {
-    const discoverySignature = createRouteDiscoverySignature(query);
-
-    if (discoverySignature === appState.routeDiscoverySignature && appState.routeDiscoveryResults) {
+    if (hasCachedDiscovery) {
       appState.results = filterFlightResultsByConnection(appState.routeDiscoveryResults, query);
     } else {
-      appState.results = await searchFlightOffers(query);
+      const discoveryResults = await searchFlightOffers(createDiscoveryQuery(query));
+
+      appState.routeDiscoverySignature = discoverySignature;
+      appState.routeDiscoveryResults = discoveryResults;
+      appState.routeOptions = getAvailableConnectionOptions(discoveryResults);
+      appState.routeOptionsStatus = 'loaded';
+      appState.results = filterFlightResultsByConnection(discoveryResults, query);
     }
   } catch (error) {
     appState.results = undefined;
     appState.serviceError = getServiceErrorMessage(error);
+    appState.routeOptions = [];
+    appState.routeOptionsStatus = 'error';
+    appState.routeDiscoverySignature = '';
+    appState.routeDiscoveryResults = undefined;
   } finally {
     appState.isLoading = false;
     renderApp();
@@ -284,54 +296,13 @@ function handleSearchCriteriaChange(event) {
   renderApp();
 }
 
-async function discoverAvailableConnections(form) {
-  const query = createDiscoveryQuery(new FormData(form));
-  const validation = validateSearchQuery(query);
-
-  if (!validation.isValid) {
-    return;
-  }
-
-  const signature = createRouteDiscoverySignature(query);
-
-  if (
-    signature === appState.routeDiscoverySignature &&
-    (appState.routeOptionsStatus === 'loading' || appState.routeOptionsStatus === 'loaded')
-  ) {
-    return;
-  }
-
-  appState.routeDiscoverySignature = signature;
-  appState.routeOptionsStatus = 'loading';
-  renderApp();
-
-  try {
-    const results = await searchFlightOffers(query);
-
-    if (appState.routeDiscoverySignature !== signature) {
-      return;
-    }
-
-    appState.routeDiscoveryResults = results;
-    appState.routeOptions = getAvailableConnectionOptions(results);
-    appState.routeOptionsStatus = 'loaded';
-  } catch {
-    if (appState.routeDiscoverySignature !== signature) {
-      return;
-    }
-
-    appState.routeOptions = [];
-    appState.routeDiscoveryResults = undefined;
-    appState.routeOptionsStatus = 'error';
-  }
-
-  renderApp();
-}
-
-function createDiscoveryQuery(formData) {
-  formData.set('viaRoute', 'all');
-
-  return createSearchQueryFromFormData(formData);
+function createDiscoveryQuery(query) {
+  return {
+    ...query,
+    viaAirportId: '',
+    via: '',
+    connectionPreference: 'all',
+  };
 }
 
 function createRouteDiscoverySignature(query) {

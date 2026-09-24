@@ -6,7 +6,7 @@ import { createSearchStatus } from '../src/components/searchStatus.js';
 test('renders an accessible loading message while search is pending', () => {
   const markup = createSearchStatus({ isLoading: true });
 
-  assert.match(markup, /Searching mock flight offers/);
+  assert.match(markup, /Searching flight offers/);
   assert.match(markup, /aria-live="polite"/);
   assert.match(markup, /role="status"/);
 });

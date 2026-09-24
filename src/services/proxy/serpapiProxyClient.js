@@ -56,11 +56,19 @@ export async function fetchSerpApiFlightOffers(query, { proxyUrl, fetchImpl = ge
     throw new Error(getSafeResponseError(response?.status));
   }
 
+  let payload;
+
   try {
-    return await response.json();
+    payload = await response.json();
   } catch {
     throw new Error('Flight API returned an invalid response.');
   }
+
+  if (hasText(payload?.error)) {
+    throw new Error(getSafeProviderError(payload.error));
+  }
+
+  return payload;
 }
 
 function resolveRouteAirport(query, fieldName, label, { optional = false } = {}) {
@@ -90,6 +98,14 @@ function getSafeResponseError(status) {
   }
 
   if (status === 429) {
+    return 'Flight API rate limit reached. Please try again later.';
+  }
+
+  return 'We could not load flight results. Please try again.';
+}
+
+function getSafeProviderError(message) {
+  if (/rate limit|run out of searches/i.test(String(message ?? ''))) {
     return 'Flight API rate limit reached. Please try again later.';
   }
 

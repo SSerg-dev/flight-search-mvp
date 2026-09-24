@@ -87,7 +87,17 @@ async function requestSerpApiGoogleFlights({ apiBaseUrl, apiKey, payload, fetchI
     throw createProxyError(response?.status);
   }
 
-  return response.json();
+  const result = await response.json();
+
+  if (hasText(result?.error)) {
+    throw createProxyError(getProviderErrorStatus(result.error));
+  }
+
+  return result;
+}
+
+function getProviderErrorStatus(message) {
+  return /rate limit|run out of searches/i.test(String(message ?? '')) ? 429 : 502;
 }
 
 function combineSerpApiGoogleFlightsResults(results) {

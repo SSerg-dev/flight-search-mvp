@@ -138,6 +138,24 @@ test('searchFlightOffers fails safely when SerpApi mode has no proxy URL', async
   );
 });
 
+test('searchFlightOffers surfaces a rate-limit error returned in a successful proxy response', async () => {
+  await assert.rejects(
+    searchFlightOffers(baseQuery, {
+      fetchImpl: async () => ({
+        ok: true,
+        json: async () => ({ error: 'Your account has run out of searches.' }),
+      }),
+      env: {
+        VITE_FLIGHT_API_MODE: 'serpapi',
+        VITE_FLIGHT_API_PROXY_URL: 'https://example.com/api/serpapi-flights',
+      },
+    }),
+    {
+      message: 'Flight API rate limit reached. Please try again later.',
+    },
+  );
+});
+
 test('searchFlightOffers returns normalized SerpApi offers through configured proxy', async () => {
   const fetchImpl = async () => ({
     ok: true,

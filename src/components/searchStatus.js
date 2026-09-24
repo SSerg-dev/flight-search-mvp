@@ -13,7 +13,7 @@ export function createSearchStatus({ isLoading = false, serviceError = '' } = {}
 
   return `
     <section class="mx-auto mt-6 max-w-5xl rounded border border-sky-200 bg-sky-50 p-4 text-sm font-medium text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100" aria-live="polite" role="status">
-      Searching mock flight offers...
+      Searching flight offers...
     </section>
   `;
 }

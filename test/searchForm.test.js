@@ -120,6 +120,16 @@ test('search form renders endpoint airports and discovered Via options', () => {
   assert.doesNotMatch(markup, /<datalist/);
 });
 
+test('search form explains that dynamic Via options load only after an explicit search', () => {
+  const idleMarkup = searchForm.createSearchForm();
+  const loadedMarkup = searchForm.createSearchForm({ routeOptionsStatus: 'loaded' });
+  const errorMarkup = searchForm.createSearchForm({ routeOptionsStatus: 'error' });
+
+  assert.match(idleMarkup, /Options load after you search this route and date range\./);
+  assert.match(loadedMarkup, /Options loaded from the latest search\./);
+  assert.match(errorMarkup, /Route options could not be loaded\./);
+});
+
 test('search form renders validation errors near related fields', () => {
   const markup = searchForm.createSearchForm({
     errors: {

@@ -111,9 +111,7 @@ function createViaRouteField({ values, errors, routeOptions = [], routeOptionsSt
     });
   }
 
-  const statusText = routeOptionsStatus === 'loading'
-    ? '<p class="text-xs font-normal text-slate-500 dark:text-slate-400">Finding available routes…</p>'
-    : '<p class="text-xs font-normal text-slate-500 dark:text-slate-400">Options update from the flights available for this route and date range.</p>';
+  const statusText = createViaStatusText(routeOptionsStatus);
 
   return `
     <div class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -136,6 +134,22 @@ function createViaRouteField({ values, errors, routeOptions = [], routeOptionsSt
       ${createFieldError('via', errors)}
     </div>
   `;
+}
+
+function createViaStatusText(status) {
+  if (status === 'loading') {
+    return '<p class="text-xs font-normal text-slate-500 dark:text-slate-400">Finding available routes…</p>';
+  }
+
+  if (status === 'loaded') {
+    return '<p class="text-xs font-normal text-slate-500 dark:text-slate-400">Options loaded from the latest search.</p>';
+  }
+
+  if (status === 'error') {
+    return '<p class="text-xs font-normal text-red-600 dark:text-red-300">Route options could not be loaded.</p>';
+  }
+
+  return '<p class="text-xs font-normal text-slate-500 dark:text-slate-400">Options load after you search this route and date range.</p>';
 }
 
 function createViaRouteOption(option, selectedValue) {
