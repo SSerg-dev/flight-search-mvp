@@ -20,8 +20,10 @@ MVP v3: SerpApi-only provider cleanup.
 - Searchable, keyboard-accessible airport comboboxes match city, country, airport name, IATA code, and available local aliases.
 - Selected airports are stored by stable dataset ID while their readable city labels remain compatible with the flight providers.
 - Departure dates must be valid future dates, and displayed flights must arrive after departure and after the current date.
-- Date range, passenger count, and layover hour filtering.
+- Date ranges limited to one day or two consecutive days per direction, passenger count, and layover hour filtering. Live searches use at most two provider requests per direction (four for a round trip); the server rejects longer ranges before calling SerpApi.
 - Explicit Demo/Live data-source switcher that persists per browser; changing modes never starts a search automatically.
+- Demo flight templates follow the selected dates, including overnight arrivals and reversed routes, without network requests.
+- Date changes keep each range within two days and return dates after the outbound range. Search controls display estimated Live request counts (zero for Demo or cached results), with quota errors and a Demo fallback beside the search button.
 - Recent valid searches are saved in browser `localStorage`, capped to the newest five, and can be restored into the form.
 - Light and dark theme toggle saved in browser `localStorage`.
 

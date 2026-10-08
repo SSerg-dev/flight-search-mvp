@@ -1,11 +1,11 @@
-export function createSearchStatus({ isLoading = false, serviceError = '', apiMode = 'mock' } = {}) {
+export function createSearchStatus({ isLoading = false, serviceError = '', apiMode = 'mock', inline = false } = {}) {
   if (serviceError) {
     const canSwitchToDemo = apiMode === 'serpapi' && /rate limit|run out of searches/i.test(serviceError);
 
     return `
-      <section class="mx-auto mt-6 max-w-5xl rounded border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-100" aria-live="assertive" role="alert">
+      <section class="${inline ? '' : 'mx-auto mt-6 max-w-5xl '}rounded border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-100" aria-live="assertive" role="alert">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <span>${escapeHtml(serviceError)}</span>
+          <div>${canSwitchToDemo ? '<p class="font-semibold">Live search limit reached</p>' : ''}<p>${escapeHtml(serviceError)}</p></div>
           ${canSwitchToDemo ? createSwitchToDemoButton() : ''}
         </div>
       </section>

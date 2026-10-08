@@ -3,6 +3,23 @@ import test from 'node:test';
 
 import * as searchForm from '../src/components/searchForm.js';
 
+test('Live quota error and Demo fallback render inside the form beside the search controls', () => {
+  const markup = searchForm.createSearchForm({ apiMode: 'serpapi', serviceError: 'Flight API rate limit reached.' });
+  assert.match(markup, /Live search limit reached/);
+  assert.match(markup, /id="switch-to-demo"/);
+  assert.ok(markup.indexOf('Live search limit reached') > markup.indexOf('Search Flights'));
+  assert.ok(markup.indexOf('Live search limit reached') < markup.indexOf('</form>'));
+});
+
+test('request counter shows Live date totals, cache hits, and zero for Demo', () => {
+  const values = { ...searchForm.searchFormDefaults, tripType: 'roundTrip',
+    dateRange: { start: '2027-01-01', end: '2027-01-02' },
+    returnDateRange: { start: '2027-01-04', end: '2027-01-05' } };
+  assert.match(searchForm.createSearchForm({ values, apiMode: 'serpapi' }), /Up to 4 API requests/);
+  assert.match(searchForm.createSearchForm({ values, apiMode: 'serpapi', hasCachedResults: true }), /0 API requests \(cached results\)/);
+  assert.match(searchForm.createSearchForm({ values, apiMode: 'mock' }), /0 API requests \(Demo\)/);
+});
+
 test('search form exposes the approved Wave 2 data model fields', () => {
   assert.deepEqual(Object.keys(searchForm.searchFormDefaults ?? {}), [
     'tripType',
@@ -71,6 +88,7 @@ test('search form shows return date fields for round trips', () => {
     values: {
       ...searchForm.searchFormDefaults,
       tripType: 'roundTrip',
+      dateRange: { start: '2026-10-01', end: '2026-10-02' },
       returnDateRange: {
         start: '2026-10-20',
         end: '2026-10-25',
@@ -84,15 +102,29 @@ test('search form shows return date fields for round trips', () => {
   assert.match(markup, /name="returnDateRangeEnd"/);
   assert.match(markup, /value="2026-10-20"/);
   assert.match(markup, /value="2026-10-25"/);
-  assert.match(markup, /name="returnDateRangeStart"[\s\S]*min="2026-10-10"[\s\S]*value="2026-10-20"/);
+  assert.match(markup, /name="returnDateRangeStart"[\s\S]*min="2026-10-02"[\s\S]*value="2026-10-20"/);
+  assert.match(markup, /name="returnDateRangeEnd"[\s\S]*max="2026-10-21"/);
   assert.match(markup, /name="returnDateRangeEnd"[\s\S]*min="2026-10-20"[\s\S]*value="2026-10-25"/);
 });
 
 test('search form constrains departure date inputs to valid chronological ranges', () => {
-  const markup = searchForm.createSearchForm();
+  const markup = searchForm.createSearchForm({ values: {
+    ...searchForm.searchFormDefaults,
+    dateRange: { start: '2026-10-31', end: '2026-11-01' },
+  } });
 
-  assert.match(markup, /name="dateRangeStart"[\s\S]*min="\d{4}-\d{2}-\d{2}"[\s\S]*value="2026-10-01"/);
-  assert.match(markup, /name="dateRangeEnd"[\s\S]*min="2026-10-01"[\s\S]*value="2026-10-10"/);
+  assert.match(markup, /name="dateRangeStart"[\s\S]*min="\d{4}-\d{2}-\d{2}"[\s\S]*value="2026-10-31"/);
+  assert.match(markup, /name="dateRangeEnd"[\s\S]*min="2026-10-31"[\s\S]*max="2026-11-01"[\s\S]*value="2026-11-01"/);
+});
+
+test('default dates use a future single-day range', () => {
+  const { dateRange, departureDate } = searchForm.searchFormDefaults;
+  assert.equal(dateRange.start, dateRange.end);
+  assert.equal(departureDate, dateRange.start);
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const expected = [tomorrow.getFullYear(), String(tomorrow.getMonth() + 1).padStart(2, '0'), String(tomorrow.getDate()).padStart(2, '0')].join('-');
+  assert.equal(dateRange.start, expected);
 });
 
 test('search form renders accessible endpoint comboboxes and a dynamic Via selector', () => {
@@ -161,6 +193,8 @@ test('creates a Via search query from legacy submitted form data', () => {
 
   assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), {
     ...searchForm.searchFormDefaults,
+    departureDate: '2026-10-01',
+    dateRange: { start: '2026-10-01', end: '2026-10-10' },
     viaAirportId: 'oa:317457',
     via: 'Istanbul',
     connectionPreference: 'via',
@@ -182,6 +216,8 @@ test('normalizes selected IATA-aware airport labels into route city values', () 
 
   assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), {
     ...searchForm.searchFormDefaults,
+    departureDate: '2026-10-01',
+    dateRange: { start: '2026-10-01', end: '2026-10-10' },
     viaAirportId: 'oa:317457',
     via: 'Istanbul',
     connectionPreference: 'via',
@@ -232,6 +268,8 @@ test('creates a round-trip search query shape from submitted form data', () => {
 
   assert.deepEqual(searchForm.createSearchQueryFromFormData(formData), {
     ...searchForm.searchFormDefaults,
+    departureDate: '2026-10-01',
+    dateRange: { start: '2026-10-01', end: '2026-10-10' },
     viaAirportId: 'oa:317457',
     via: 'Istanbul',
     connectionPreference: 'via',

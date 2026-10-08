@@ -178,7 +178,7 @@ test('SerpApi proxy searches every date in the requested departure range', async
       departureDate: '2026-10-01',
       dateRange: {
         start: '2026-10-01',
-        end: '2026-10-10',
+        end: '2026-10-02',
       },
     }),
   });
@@ -187,21 +187,30 @@ test('SerpApi proxy searches every date in the requested departure range', async
   assert.deepEqual(calls, [
     '2026-10-01',
     '2026-10-02',
-    '2026-10-03',
-    '2026-10-04',
-    '2026-10-05',
-    '2026-10-06',
-    '2026-10-07',
-    '2026-10-08',
-    '2026-10-09',
-    '2026-10-10',
   ]);
 
   const body = JSON.parse(response.body);
-  assert.equal(body.best_flights.length, 10);
-  assert.equal(body.other_flights.length, 10);
+  assert.equal(body.best_flights.length, 2);
+  assert.equal(body.other_flights.length, 2);
   assert.equal(body.best_flights[0].date, '2026-10-01');
-  assert.equal(body.best_flights[9].date, '2026-10-10');
+  assert.equal(body.best_flights[1].date, '2026-10-02');
+});
+
+test('SerpApi proxy rejects excessive and invalid ranges without spending searches', async () => {
+  let calls = 0;
+  const handler = createSerpApiProxyHandler({ env, fetchImpl: async () => { calls += 1; throw new Error('Unexpected request'); } });
+  for (const dateRange of [
+    { start: '2026-10-01', end: '2026-10-03' },
+    { start: '2026-10-01', end: '2026-11-22' },
+    { start: '2026-10-02', end: '2026-10-01' },
+    { start: '2026-02-30', end: '2026-03-01' },
+    { start: '', end: '' },
+  ]) {
+    const result = await handler({ method: 'POST', body: JSON.stringify({ ...proxyPayload, dateRange }) });
+    assert.equal(result.status, 400);
+    assert.equal(JSON.parse(result.body).error, 'Choose one day or two consecutive days maximum.');
+  }
+  assert.equal(calls, 0);
 });
 
 test('SerpApi proxy maps rate limits safely', async () => {

@@ -5,6 +5,7 @@ import {
   resolveRouteLocation,
 } from '../services/airportMetadataService.js';
 import { isDateAfterToday, parseDateOnly } from './dateTime.js';
+import { getSearchDayCount, MAX_SEARCH_DAYS, SEARCH_DATE_RANGE_ERROR } from './searchDateRange.js';
 
 export function validateSearchQuery(query, { currentDate = new Date() } = {}) {
   const errors = {};
@@ -73,12 +74,20 @@ export function validateSearchQuery(query, { currentDate = new Date() } = {}) {
     errors.dateRange = 'Departure Date Start must be after today.';
   }
 
+  if (!errors.dateRange && getSearchDayCount(query.dateRange) > MAX_SEARCH_DAYS) {
+    errors.dateRange = SEARCH_DATE_RANGE_ERROR;
+  }
+
   if (!errors.returnDateRange && isRoundTrip(query) && query.returnDateRange.start > query.returnDateRange.end) {
     errors.returnDateRange = 'Return Date Range start date must be before or equal to end date.';
   }
 
   if (!errors.dateRange && !errors.returnDateRange && isRoundTrip(query) && query.returnDateRange.start < query.dateRange.end) {
     errors.returnDateRange = 'Return Date Start cannot be earlier than Departure Date End.';
+  }
+
+  if (!errors.returnDateRange && isRoundTrip(query) && getSearchDayCount(query.returnDateRange) > MAX_SEARCH_DAYS) {
+    errors.returnDateRange = SEARCH_DATE_RANGE_ERROR;
   }
 
   if (!errors.minLayover && !errors.maxLayover && Number(query.minLayover) > Number(query.maxLayover)) {

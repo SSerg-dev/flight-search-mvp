@@ -1,3 +1,6 @@
+import { getSearchDayCount, MAX_SEARCH_DAYS, SEARCH_DATE_RANGE_ERROR } from '../src/utils/searchDateRange.js';
+import { parseDateOnly } from '../src/utils/dateTime.js';
+
 const DEFAULT_SERPAPI_API_BASE_URL = 'https://serpapi.com';
 
 export function createSerpApiProxyHandler({ env = {}, fetchImpl = globalThis.fetch } = {}) {
@@ -28,6 +31,14 @@ export function createSerpApiProxyHandler({ env = {}, fetchImpl = globalThis.fet
       return jsonResponse(400, {
         error: 'Flight API proxy request is invalid.',
       });
+    }
+
+    const dayCount = getSearchDayCount(payload.dateRange ?? {
+      start: payload.departureDate,
+      end: payload.departureDate,
+    });
+    if (!dayCount || dayCount > MAX_SEARCH_DAYS) {
+      return jsonResponse(400, { error: SEARCH_DATE_RANGE_ERROR });
     }
 
     try {
@@ -151,20 +162,6 @@ function getDepartureDates(payload) {
   }
 
   return dates;
-}
-
-function parseDateOnly(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value ?? ''))) {
-    return undefined;
-  }
-
-  const date = new Date(`${value}T00:00:00Z`);
-
-  if (Number.isNaN(date.getTime())) {
-    return undefined;
-  }
-
-  return date;
 }
 
 function formatDateOnly(date) {

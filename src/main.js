@@ -10,6 +10,8 @@ import { getInitialDataMode, persistDataMode } from './utils/flightDataMode.js';
 import { clearSavedSearches, getSavedSearches, saveSearch } from './utils/savedSearches.js';
 import { applyTheme, getInitialTheme, getNextTheme, persistTheme } from './utils/theme.js';
 import { validateSearchQuery } from './utils/validation.js';
+import { parseDateOnly } from './utils/dateTime.js';
+import { normalizeSearchDates } from './utils/searchDateRange.js';
 import {
   filterFlightResultsByConnection,
   getAvailableConnectionOptions,
@@ -51,10 +53,12 @@ function renderApp() {
       routeOptions: appState.routeOptions,
       routeOptionsStatus: appState.routeOptionsStatus,
       apiMode: appState.apiMode,
+      serviceError: appState.serviceError,
+      hasCachedResults: Boolean(appState.routeDiscoveryResults &&
+        createRouteDiscoverySignature(appState.values) === appState.routeDiscoverySignature),
     }) +
     createSearchStatus({
       isLoading: appState.isLoading,
-      serviceError: appState.serviceError,
       apiMode: appState.apiMode,
     }) +
     createSearchResultsMarkup(appState.results, {
@@ -275,7 +279,7 @@ async function handleSearchSubmit(event) {
 function handleSearchCriteriaChange(event) {
   const fieldName = event.target?.name;
 
-  if (event.target?.type === 'date' && !event.target.validity.valid) {
+  if (event.target?.type === 'date' && !parseDateOnly(event.target.value)) {
     return;
   }
 
@@ -296,7 +300,8 @@ function handleSearchCriteriaChange(event) {
     return;
   }
 
-  appState.values = createSearchQueryFromFormData(new FormData(event.currentTarget));
+  const values = createSearchQueryFromFormData(new FormData(event.currentTarget));
+  appState.values = event.target?.type === 'date' ? normalizeSearchDates(values) : values;
   appState.errors = {};
   appState.results = undefined;
   appState.lastQuery = undefined;
@@ -338,7 +343,7 @@ function handleSortChange(event) {
 function handleTripTypeChange(event) {
   const query = createSearchQueryFromFormData(new FormData(event.currentTarget.form));
 
-  appState.values = query;
+  appState.values = normalizeSearchDates(query);
   appState.errors = {};
   appState.results = undefined;
   appState.lastQuery = undefined;
@@ -358,7 +363,7 @@ function handleSavedSearchSelect(event) {
     return;
   }
 
-  appState.values = savedSearch.query;
+  appState.values = normalizeSearchDates(savedSearch.query);
   appState.errors = {};
   appState.results = undefined;
   appState.lastQuery = undefined;

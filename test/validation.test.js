@@ -13,7 +13,7 @@ const validQuery = {
   departureDate: '2026-10-01',
   dateRange: {
     start: '2026-10-01',
-    end: '2026-10-10',
+    end: '2026-10-02',
   },
   returnDateRange: {
     start: '',
@@ -177,13 +177,28 @@ test('rejects return dates before the outbound date range ends', () => {
     ...validQuery,
     tripType: 'roundTrip',
     returnDateRange: {
-      start: '2026-10-09',
-      end: '2026-10-20',
+      start: '2026-10-01',
+      end: '2026-10-02',
     },
   });
 
   assert.equal(result.isValid, false);
   assert.equal(result.errors.returnDateRange, 'Return Date Start cannot be earlier than Departure Date End.');
+});
+
+test('accepts one or two days across a month boundary and rejects three days', () => {
+  for (const end of ['2026-10-31', '2026-11-01']) {
+    assert.equal(validate({ ...validQuery, dateRange: { start: '2026-10-31', end } }).isValid, true);
+  }
+  const result = validate({ ...validQuery, dateRange: { start: '2026-10-31', end: '2026-11-02' } });
+  assert.equal(result.errors.dateRange, 'Choose one day or two consecutive days maximum.');
+});
+
+test('limits return dates independently to two days', () => {
+  const query = { ...validQuery, tripType: 'roundTrip', returnDateRange: { start: '2026-10-20', end: '2026-10-21' } };
+  assert.equal(validate(query).isValid, true);
+  assert.equal(validate({ ...query, returnDateRange: { start: '2026-10-20', end: '2026-10-22' } }).errors.returnDateRange,
+    'Choose one day or two consecutive days maximum.');
 });
 
 function validate(query) {

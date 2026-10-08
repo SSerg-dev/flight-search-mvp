@@ -7,6 +7,10 @@ import {
   resolveRouteLocation,
 } from '../services/airportMetadataService.js';
 import { getTodayDateString } from '../utils/dateTime.js';
+import { getMaximumSearchEndDate, getSearchRequestCount } from '../utils/searchDateRange.js';
+import { createSearchStatus } from './searchStatus.js';
+
+const defaultDepartureDate = getNextDateString(getTodayDateString());
 
 export const searchFormDefaults = {
   tripType: 'oneWay',
@@ -17,10 +21,10 @@ export const searchFormDefaults = {
   connectionPreference: 'all',
   toAirportId: 'oa:6489',
   to: 'Saint Petersburg',
-  departureDate: '2026-10-01',
+  departureDate: defaultDepartureDate,
   dateRange: {
-    start: '2026-10-01',
-    end: '2026-10-10',
+    start: defaultDepartureDate,
+    end: defaultDepartureDate,
   },
   returnDateRange: {
     start: '',
@@ -187,7 +191,7 @@ function createNumberField({ id, label, value, min, errors }) {
   `;
 }
 
-function createDateField({ id, label, value, min, errors }) {
+function createDateField({ id, label, value, min, max, errors }) {
   return `
     <label class="grid gap-2 text-sm font-medium text-slate-700 dark:text-slate-300" for="${id}">
       <span class="block min-h-5">${label}</span>
@@ -197,6 +201,7 @@ function createDateField({ id, label, value, min, errors }) {
         name="${id}"
         type="date"
         min="${escapeHtml(min)}"
+        ${max ? `max="${escapeHtml(max)}"` : ''}
         value="${escapeHtml(value)}"
         ${createErrorAttributes(id, errors)}
       />
@@ -296,6 +301,8 @@ export function createSearchForm({
   routeOptions = [],
   routeOptionsStatus = 'idle',
   apiMode = 'mock',
+  serviceError = '',
+  hasCachedResults = false,
 } = {}) {
   const buttonText = isLoading ? 'Searching...' : 'Search Flights';
   const loadingAttributes = isLoading ? 'disabled aria-busy="true"' : 'aria-busy="false"';
@@ -352,6 +359,7 @@ export function createSearchForm({
                 label: 'Departure Date End',
                 value: values.dateRange.end,
                 min: values.dateRange.start || minimumDepartureDate,
+                max: getMaximumSearchEndDate(values.dateRange.start || minimumDepartureDate),
                 errors,
               })}
             </div>
@@ -394,12 +402,23 @@ export function createSearchForm({
               ${buttonText}
             </button>
             ${createDataSourceControl(apiMode)}
+            ${createRequestCount(values, apiMode, hasCachedResults)}
           </div>
+          ${createSearchStatus({ serviceError, apiMode, inline: true })}
         </form>
         ${createSavedSearchesMarkup(savedSearches)}
       </section>
     </main>
   `;
+}
+
+function createRequestCount(values, apiMode, hasCachedResults) {
+  const count = getSearchRequestCount(values);
+  const text = apiMode !== 'serpapi' ? '0 API requests (Demo)'
+    : hasCachedResults ? '0 API requests (cached results)'
+    : count === null ? 'API requests: select valid dates'
+    : `Up to ${count} API request${count === 1 ? '' : 's'}`;
+  return `<p class="text-xs font-medium text-slate-500 dark:text-slate-400" id="search-request-count" aria-live="polite">${text}</p>`;
 }
 
 function createDataSourceControl(apiMode) {
@@ -563,6 +582,7 @@ function createReturnDateRangeFields(values, errors, minimumDepartureDate) {
           label: 'Return Date End',
           value: values.returnDateRange?.end ?? '',
           min: values.returnDateRange?.start || values.dateRange?.end || values.dateRange?.start || minimumDepartureDate,
+          max: getMaximumSearchEndDate(values.returnDateRange?.start || values.dateRange?.end || values.dateRange?.start || minimumDepartureDate),
           errors,
         })}
       </div>

@@ -1,5 +1,7 @@
 import { mockFlights } from '../../data/mockFlights.js';
 import { searchFlights } from '../../utils/searchFlights.js';
+import { parseDateOnly, parseFlightDateTime } from '../../utils/dateTime.js';
+import { getSearchDayCount, MAX_SEARCH_DAYS } from '../../utils/searchDateRange.js';
 
 const DEFAULT_DELAY_MS = 150;
 
@@ -10,14 +12,8 @@ export async function searchMockFlightOffers(query, { delayMs = DEFAULT_DELAY_MS
     throw new Error('Mock flight service failed.');
   }
 
-  const results = searchFlights(query, mockFlights, options);
-
-  if (results.length > 0) {
-    return priceForPassengerCount(results, query.adults);
-  }
-
   return priceForPassengerCount(
-    searchFlights(query, createReversedMockFlights(query), options),
+    searchFlights(query, createDatedMockFlights(query), options),
     query.adults,
   );
 }
@@ -55,32 +51,50 @@ function wait(delayMs) {
   });
 }
 
-function createReversedMockFlights(query) {
-  const departureDate = query.dateRange?.start || query.departureDate;
+function createDatedMockFlights(query) {
+  const dayCount = getSearchDayCount(query.dateRange);
+  if (!dayCount || dayCount > MAX_SEARCH_DAYS) return [];
+  const start = parseDateOnly(query.dateRange.start);
+  const flights = [];
+  for (let day = 0; day < dayCount; day += 1) {
+    const date = new Date(start.getTime() + day * 86400000);
+    const departureDate = date.toISOString().slice(0, 10);
+    for (const template of mockFlights) {
+      const offset = date - parseDateOnly(template.route.departureDate);
+      const segments = template.segments.map((segment) => ({
+        ...segment,
+        departure: formatDateTime(new Date(parseFlightDateTime(segment.departure).getTime() + offset)),
+        arrival: formatDateTime(new Date(parseFlightDateTime(segment.arrival).getTime() + offset)),
+      }));
+      const flight = {
+        ...template,
+        id: `${template.id}-${departureDate}`,
+        route: { ...template.route, departureDate },
+        segments,
+      };
+      flights.push(flight, reverseFlight(flight));
+    }
+  }
+  return flights;
+}
 
-  return mockFlights.map((flight) => ({
+function reverseFlight(flight) {
+  let cursor = parseFlightDateTime(flight.segments[0].departure).getTime();
+  const segments = [...flight.segments].reverse().map((segment, index) => {
+    if (index > 0) cursor += flight.duration.layoverMinutes * 60000;
+    const departure = formatDateTime(new Date(cursor));
+    cursor += parseFlightDateTime(segment.arrival) - parseFlightDateTime(segment.departure);
+    return { ...segment, from: segment.to, to: segment.from, departure, arrival: formatDateTime(new Date(cursor)) };
+  });
+  return {
     ...flight,
     id: `${flight.id}-reverse`,
-    route: {
-      origin: flight.route.destination,
-      stopover: flight.route.stopover,
-      destination: flight.route.origin,
-      departureDate,
-    },
-    segments: reverseSegments(flight.segments, departureDate),
-  }));
+    airline: { ...flight.airline, flightNumbers: [...flight.airline.flightNumbers].reverse() },
+    route: { ...flight.route, origin: flight.route.destination, destination: flight.route.origin },
+    segments,
+  };
 }
 
-function reverseSegments(segments, departureDate) {
-  return [...segments].reverse().map((segment, index) => ({
-    ...segment,
-    from: segment.to,
-    to: segment.from,
-    departure: createMockDateTime(departureDate, index === 0 ? '10:00' : '18:00'),
-    arrival: createMockDateTime(departureDate, index === 0 ? '14:00' : '22:00'),
-  }));
-}
-
-function createMockDateTime(date, time) {
-  return `${date} ${time}`;
+function formatDateTime(date) {
+  return date.toISOString().slice(0, 16).replace('T', ' ');
 }

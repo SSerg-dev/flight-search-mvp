@@ -4,6 +4,8 @@ import test from 'node:test';
 import { searchFlightOffers } from '../src/services/flightService.js';
 import { serpapiGoogleFlightsFixture } from './fixtures/serpapiGoogleFlights.js';
 
+const currentDate = new Date('2026-09-04T12:00:00Z');
+
 const baseQuery = {
   tripType: 'oneWay',
   from: 'Boston',
@@ -12,7 +14,7 @@ const baseQuery = {
   departureDate: '2026-10-01',
   dateRange: {
     start: '2026-10-01',
-    end: '2026-10-10',
+    end: '2026-10-02',
   },
   returnDateRange: {
     start: '',
@@ -24,7 +26,7 @@ const baseQuery = {
 };
 
 test('searchFlightOffers returns matching mock flight offers asynchronously', async () => {
-  const searchPromise = searchFlightOffers(baseQuery);
+  const searchPromise = searchFlightOffers(baseQuery, { currentDate });
 
   assert.equal(typeof searchPromise.then, 'function');
 
@@ -55,6 +57,7 @@ test('searchFlightOffers can simulate a service failure', async () => {
 
 test('searchFlightOffers uses mock adapter for mock mode', async () => {
   const results = await searchFlightOffers(baseQuery, {
+    currentDate,
     delayMs: 0,
     env: {
       VITE_FLIGHT_API_MODE: 'mock',
@@ -67,6 +70,7 @@ test('searchFlightOffers uses mock adapter for mock mode', async () => {
 
 test('mock mode recalculates total prices for the selected number of adults', async () => {
   const options = {
+    currentDate,
     delayMs: 0,
     env: {
       VITE_FLIGHT_API_MODE: 'mock',
@@ -90,10 +94,11 @@ test('searchFlightOffers returns outbound and return sections for round trips', 
       tripType: 'roundTrip',
       returnDateRange: {
         start: '2026-10-20',
-        end: '2026-10-25',
+        end: '2026-10-21',
       },
     },
     {
+      currentDate,
       delayMs: 0,
       env: {
         VITE_FLIGHT_API_MODE: 'mock',
@@ -114,6 +119,7 @@ test('searchFlightOffers returns outbound and return sections for round trips', 
 
 test('searchFlightOffers falls back to mock adapter for unsupported mode', async () => {
   const results = await searchFlightOffers(baseQuery, {
+    currentDate,
     delayMs: 0,
     env: {
       VITE_FLIGHT_API_MODE: 'unknown',
@@ -163,6 +169,7 @@ test('searchFlightOffers returns normalized SerpApi offers through configured pr
   });
 
   const results = await searchFlightOffers(baseQuery, {
+    currentDate,
     fetchImpl,
     env: {
       VITE_FLIGHT_API_MODE: 'serpapi',
@@ -264,7 +271,7 @@ test('searchFlightOffers sends reversed route and return dates for round-trip pr
       tripType: 'roundTrip',
       returnDateRange: {
         start: '2026-10-20',
-        end: '2026-10-25',
+        end: '2026-10-21',
       },
     },
     {
@@ -284,11 +291,11 @@ test('searchFlightOffers sends reversed route and return dates for round-trip pr
   assert.equal(outboundPayload.route.from.iata, 'BOS');
   assert.equal(outboundPayload.route.to.iata, 'LED');
   assert.equal(outboundPayload.dateRange.start, '2026-10-01');
-  assert.equal(outboundPayload.dateRange.end, '2026-10-10');
+  assert.equal(outboundPayload.dateRange.end, '2026-10-02');
   assert.equal(returnPayload.route.from.iata, 'LED');
   assert.equal(returnPayload.route.to.iata, 'BOS');
   assert.equal(returnPayload.route.via.iata, 'IST');
   assert.equal(returnPayload.departureDate, '2026-10-20');
   assert.equal(returnPayload.dateRange.start, '2026-10-20');
-  assert.equal(returnPayload.dateRange.end, '2026-10-25');
+  assert.equal(returnPayload.dateRange.end, '2026-10-21');
 });
