@@ -9,6 +9,7 @@ import {
 import { getTodayDateString } from '../utils/dateTime.js';
 import { getMaximumSearchEndDate, getSearchRequestCount } from '../utils/searchDateRange.js';
 import { createSearchStatus } from './searchStatus.js';
+import { createSerpApiQuotaMarkup } from './serpapiQuota.js';
 
 const defaultDepartureDate = getNextDateString(getTodayDateString());
 
@@ -303,6 +304,7 @@ export function createSearchForm({
   apiMode = 'mock',
   serviceError = '',
   hasCachedResults = false,
+  quota = {},
 } = {}) {
   const buttonText = isLoading ? 'Searching...' : 'Search Flights';
   const loadingAttributes = isLoading ? 'disabled aria-busy="true"' : 'aria-busy="false"';
@@ -401,7 +403,7 @@ export function createSearchForm({
             >
               ${buttonText}
             </button>
-            ${createDataSourceControl(apiMode)}
+            ${createDataSourceControl(apiMode, quota)}
             ${createRequestCount(values, apiMode, hasCachedResults)}
           </div>
           ${createSearchStatus({ serviceError, apiMode, inline: true })}
@@ -421,13 +423,14 @@ function createRequestCount(values, apiMode, hasCachedResults) {
   return `<p class="text-xs font-medium text-slate-500 dark:text-slate-400" id="search-request-count" aria-live="polite">${text}</p>`;
 }
 
-function createDataSourceControl(apiMode) {
+function createDataSourceControl(apiMode, quota) {
   const isLive = apiMode === 'serpapi';
 
   return `
             <fieldset class="grid gap-1.5" aria-label="Flight data source">
               <legend class="text-xs font-medium text-slate-500 dark:text-slate-400">Data source</legend>
-              <div class="inline-flex w-fit rounded-full border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-950">
+              <div class="flex flex-wrap items-center gap-3">
+                <div class="inline-flex w-fit rounded-full border border-slate-200 bg-slate-100 p-1 dark:border-slate-700 dark:bg-slate-950">
                 ${createDataSourceOption({
                   mode: 'mock',
                   label: 'Demo',
@@ -440,6 +443,8 @@ function createDataSourceControl(apiMode) {
                   description: 'SerpApi',
                   isActive: isLive,
                 })}
+                </div>
+                <span id="serpapi-quota">${createSerpApiQuotaMarkup(quota)}</span>
               </div>
             </fieldset>
   `;

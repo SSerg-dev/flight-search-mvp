@@ -22,6 +22,7 @@ MVP v3: SerpApi-only provider cleanup.
 - Departure dates must be valid future dates, and displayed flights must arrive after departure and after the current date.
 - Date ranges limited to one day or two consecutive days per direction, passenger count, and layover hour filtering. Live searches use at most two provider requests per direction (four for a round trip); the server rejects longer ranges before calling SerpApi.
 - Explicit Demo/Live data-source switcher that persists per browser; changing modes never starts a search automatically.
+- Remaining SerpApi searches appear beside Live and refresh on page load, switching to Live, and each completed Live proxy request (including failures). The server-only `/api/serpapi-account` endpoint uses the free Account API and exposes only the remaining count and monthly limit, never credentials or account details.
 - Demo flight templates follow the selected dates, including overnight arrivals and reversed routes, without network requests.
 - Date changes keep each range within two days and return dates after the outbound range. Search controls display estimated Live request counts (zero for Demo or cached results), with quota errors and a Demo fallback beside the search button.
 - Recent valid searches are saved in browser `localStorage`, capped to the newest five, and can be restored into the form.

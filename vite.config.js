@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { createSerpApiProxyHandler } from './api/serpapi-flights.js';
+import { createSerpApiAccountHandler } from './api/serpapi-account.js';
 import { createSerpApiDevMiddleware } from './src/dev/serpapiApiDevMiddleware.js';
 
 export function createFlightSearchViteConfig({ env = {}, fetchImpl = globalThis.fetch } = {}) {
@@ -16,6 +17,7 @@ export function createFlightSearchViteConfig({ env = {}, fetchImpl = globalThis.
               env,
               fetchImpl,
             }),
+            accountHandler: createSerpApiAccountHandler({ env, fetchImpl }),
           }),
         );
       },

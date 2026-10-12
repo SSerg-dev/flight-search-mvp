@@ -1,12 +1,14 @@
-export function createSerpApiDevMiddleware({ handler }) {
+export function createSerpApiDevMiddleware({ handler, accountHandler }) {
   return async function serpApiDevMiddleware(request, response, next) {
-    if (request.url !== '/api/serpapi-flights') {
+    const selectedHandler = request.url === '/api/serpapi-flights' ? handler
+      : request.url === '/api/serpapi-account' ? accountHandler : undefined;
+    if (!selectedHandler) {
       next();
       return;
     }
 
     const body = await readRequestBody(request);
-    const result = await handler({
+    const result = await selectedHandler({
       method: request.method,
       body,
     });

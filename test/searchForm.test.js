@@ -3,6 +3,18 @@ import test from 'node:test';
 
 import * as searchForm from '../src/components/searchForm.js';
 
+test('quota is shown alongside Live, with explicit loading and unavailable states', () => {
+  const markup = searchForm.createSearchForm({ quota: { status: 'loaded', data: { remaining: 0, limit: 250 } } });
+  assert.match(markup, /Live[\s\S]*id="serpapi-quota"[\s\S]*0 \/ 250 left/);
+  assert.match(markup, /aria-label="SerpApi searches remaining"/);
+  assert.match(markup, /tabular-nums text-red-600/);
+  assert.match(searchForm.createSearchForm({ quota: { status: 'loaded', data: { remaining: 248, limit: 250 } } }), /248 \/ 250 left/);
+  assert.match(searchForm.createSearchForm(), /Checking quota/);
+  const unavailable = searchForm.createSearchForm({ quota: { status: 'error', data: null } });
+  assert.match(unavailable, /Quota unavailable/);
+  assert.doesNotMatch(unavailable, /250 \/ 250 left/);
+});
+
 test('Live quota error and Demo fallback render inside the form beside the search controls', () => {
   const markup = searchForm.createSearchForm({ apiMode: 'serpapi', serviceError: 'Flight API rate limit reached.' });
   assert.match(markup, /Live search limit reached/);

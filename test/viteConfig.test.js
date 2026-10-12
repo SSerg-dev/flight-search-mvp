@@ -65,6 +65,20 @@ test('Vite config registers only SerpApi API middleware', () => {
   );
 });
 
+test('Vite middleware serves account quotas through the same server-only environment', async () => {
+  const config = createFlightSearchViteConfig({ env: { SERPAPI_API_KEY: 'private-account-key' },
+    fetchImpl: async () => ({ ok: true, json: async () => ({ total_searches_left: 248, searches_per_month: 250, api_key: 'private-account-key' }) }) });
+  let middleware;
+  config.plugins.find(plugin => plugin.name === 'flight-search-serpapi-api-dev')
+    .configureServer({ middlewares: { use(value) { middleware = value; } } });
+  const response = createResponse();
+  await middleware(createRequest({ method: 'GET', url: '/api/serpapi-account', body: '' }), response,
+    () => { throw new Error('Account request should be handled'); });
+  assert.equal(response.status, 200);
+  assert.deepEqual(JSON.parse(response.body), { remaining: 248, limit: 250 });
+  assert.equal(response.headers['Cache-Control'], 'no-store');
+});
+
 function createRequest({ method, url, body }) {
   const request = new EventEmitter();
   request.method = method;

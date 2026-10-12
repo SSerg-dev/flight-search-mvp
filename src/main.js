@@ -4,6 +4,8 @@ import { getApiConfig } from './config/apiConfig.js';
 import { createSearchResultsMarkup } from './components/searchResults.js';
 import { createSearchStatus } from './components/searchStatus.js';
 import { searchFlightOffers } from './services/flightService.js';
+import { fetchSerpApiQuota } from './services/serpapiQuotaService.js';
+import { createSerpApiQuotaMarkup } from './components/serpapiQuota.js';
 import { formatRouteLocationOptionValue, searchRouteLocations } from './services/airportMetadataService.js';
 import { getServiceErrorMessage } from './utils/serviceErrorMessage.js';
 import { getInitialDataMode, persistDataMode } from './utils/flightDataMode.js';
@@ -38,9 +40,30 @@ const appState = {
   routeDiscoverySignature: '',
   routeDiscoveryResults: undefined,
   apiMode: getInitialDataMode(apiConfig.mode),
+  quota: { status: 'loading', data: null },
 };
 
+let quotaRequestId = 0;
 renderApp();
+void refreshSerpApiQuota();
+
+async function refreshSerpApiQuota() {
+  const requestId = ++quotaRequestId;
+  appState.quota = { ...appState.quota, status: 'loading' };
+  renderQuota();
+  try {
+    const data = await fetchSerpApiQuota();
+    if (requestId === quotaRequestId) appState.quota = { status: 'loaded', data };
+  } catch {
+    if (requestId === quotaRequestId) appState.quota = { status: 'error', data: null };
+  }
+  if (requestId === quotaRequestId) renderQuota();
+}
+
+function renderQuota() {
+  const element = app.querySelector('#serpapi-quota');
+  if (element) element.innerHTML = createSerpApiQuotaMarkup(appState.quota);
+}
 
 function renderApp() {
   app.innerHTML =
@@ -54,6 +77,7 @@ function renderApp() {
       routeOptionsStatus: appState.routeOptionsStatus,
       apiMode: appState.apiMode,
       serviceError: appState.serviceError,
+      quota: appState.quota,
       hasCachedResults: Boolean(appState.routeDiscoveryResults &&
         createRouteDiscoverySignature(appState.values) === appState.routeDiscoverySignature),
     }) +
@@ -255,6 +279,7 @@ async function handleSearchSubmit(event) {
     } else {
       const discoveryResults = await searchFlightOffers(createDiscoveryQuery(query), {
         env: createSearchApiEnv(),
+        onRequestComplete: refreshSerpApiQuota,
       });
 
       appState.routeDiscoverySignature = discoverySignature;
@@ -407,6 +432,7 @@ function setApiMode(mode) {
   appState.routeDiscoverySignature = '';
   appState.routeDiscoveryResults = undefined;
   renderApp();
+  if (mode === 'serpapi') void refreshSerpApiQuota();
 }
 
 function createSearchApiEnv() {

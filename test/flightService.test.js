@@ -6,6 +6,22 @@ import { serpapiGoogleFlightsFixture } from './fixtures/serpapiGoogleFlights.js'
 
 const currentDate = new Date('2026-09-04T12:00:00Z');
 
+test('Live completion callback runs after successful requests and errors, but not Demo', async () => {
+  let completions = 0;
+  const options = { currentDate, onRequestComplete: () => { completions += 1; },
+    env: { VITE_FLIGHT_API_MODE: 'serpapi', VITE_FLIGHT_API_PROXY_URL: '/api/serpapi-flights' },
+    fetchImpl: async () => ({ ok: true, json: async () => ({ best_flights: [], other_flights: [] }) }) };
+  await searchFlightOffers({ ...baseQuery, tripType: 'roundTrip',
+    returnDateRange: { start: '2026-10-20', end: '2026-10-21' } }, options);
+  assert.equal(completions, 2);
+  await assert.rejects(searchFlightOffers(baseQuery, { ...options, fetchImpl: async () => ({ ok: false, status: 429 }) }), /rate limit/);
+  assert.equal(completions, 3);
+  await assert.rejects(searchFlightOffers(baseQuery, { ...options, fetchImpl: async () => { throw new Error('offline'); } }), /network/);
+  assert.equal(completions, 4);
+  await searchFlightOffers(baseQuery, { ...options, delayMs: 0, env: { VITE_FLIGHT_API_MODE: 'mock' } });
+  assert.equal(completions, 4);
+});
+
 const baseQuery = {
   tripType: 'oneWay',
   from: 'Boston',
